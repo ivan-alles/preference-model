@@ -2,55 +2,53 @@ import numpy as np
 
 
 class PreferenceModel:
-    def __init__(self, dna_shape, default_std=0.01):
-        super().__init__(dna_shape)
+    def __init__(self, shape=512, default_std=0.01):
+        """
+        Create model object.
+        :param shape: shape of the vector to learn the preference from.
+        :param default_std: the value of standard deviation to use if we learn from only one training example.
+        """
+        self._rng = np.random.RandomState(0)
+        self._shape = shape
         self._default_std = default_std
-        # Init mean, std
-        self.train([])
+        # Learnable parameters
+        self._mean = None  # Input mean
+        self._std = None   # Input std
 
-    @staticmethod
-    def _mean_of_angles(angles, weights):
-        s = np.sin(angles)
-        c = np.cos(angles)
-        if weights is not None:
-            weights = weights.reshape(-1, 1)
-            s *= weights
-            c *= weights
-        m = np.arctan2(s.sum(axis=0), c.sum(axis=0))
-        return m
-
-    def train(self, elite_dna, weights=None):
-        if len(elite_dna) == 0:
-            # Reset mean, std
+    def train(self, training_examples, weights=None):
+        if len(training_examples) == 0:
+            # Reset the trainable parameters and use a uniform distribution.
             self._mean = None
             self._std = None
         else:
-            # Update mean, std.
-            assert (elite_dna.ndim == 2)
-            r, phi = cartesian_to_spherical_n(elite_dna)
-            self._mean = self._mean_of_angles(phi, weights)
-            if len(elite_dna) > 1:
+            # Learn mean, std.
+            assert (training_examples.ndim == 2)
+            r, phi = cartesian_to_spherical_n(training_examples)
+            self._mean = mean_of_angles(phi, weights)
+            if len(training_examples) > 1:
                 phi_c = phi - self._mean
                 a = np.abs(phi_c)
-                self._std = self._mean_of_angles(a, weights)
+                self._std = mean_of_angles(a, weights)
             else:
                 self._std = np.full(self._mean.shape, self._default_std, dtype=np.float32)
 
-    def generate(self, count):
+    def generate(self, size, mutation_factor=1):
         """
-        Generate new DNAs with current model parameters.
-        :return: a vector of DNAs.
+        Generate new data for current model parameters.
+        :param size the number of vectors to generate.
+        :param mutation_factor the larger the factor, the more mutation has the output
+        :return: an array of vectors similar to those used for training.
         """
         if self._std is None:
             # Generate uniform distribution on the sphere
-            mean = np.zeros(self._dna_shape, dtype=np.float32)
-            std = np.full(self._dna_shape, 1, dtype=np.float32)
+            mean = np.zeros(self._shape, dtype=np.float32)
+            std = np.full(self._shape, 1, dtype=np.float32)
             cov = np.diag(np.array(std ** 2))
-            dna = self._rng.multivariate_normal(mean=mean, cov=cov, size=count)
+            dna = self._rng.multivariate_normal(mean=mean, cov=cov, size=size)
         else:
-            std = self._std * self._std_scale
+            std = self._std * mutation_factor
             cov = np.diag(np.array(std ** 2) + 1e-5)
-            phi = self._rng.multivariate_normal(mean=self._mean, cov=cov, size=count, check_valid="ignore").astype(
+            phi = self._rng.multivariate_normal(mean=self._mean, cov=cov, size=size, check_valid="ignore").astype(
                 np.float32)
             # TODO(ia): do we have to make sure that phi is in required range?
             dna = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
