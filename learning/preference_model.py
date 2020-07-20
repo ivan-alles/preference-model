@@ -15,7 +15,7 @@ class PreferenceModel:
         self._mean = None  # Input mean
         self._std = None   # Input std
 
-    def train(self, training_examples, weights=None):
+    def train(self, training_examples):
         if len(training_examples) == 0:
             # Reset the trainable parameters and use a uniform distribution.
             self._mean = None
@@ -24,11 +24,11 @@ class PreferenceModel:
             # Learn mean, std.
             assert (training_examples.ndim == 2)
             r, phi = cartesian_to_spherical_n(training_examples)
-            self._mean = mean_of_angles(phi, weights)
+            self._mean = mean_of_angles(phi, axis=0)
             if len(training_examples) > 1:
                 phi_c = phi - self._mean
                 a = np.abs(phi_c)
-                self._std = mean_of_angles(a, weights)
+                self._std = mean_of_angles(a, axis=0)
             else:
                 self._std = np.full(self._mean.shape, self._default_std, dtype=np.float32)
 
@@ -41,18 +41,19 @@ class PreferenceModel:
         """
         if self._std is None:
             # Generate uniform distribution on the sphere
+            # TODO(ia): this does not look like a uniform distribution, is there a reference to this algo?
             mean = np.zeros(self._shape, dtype=np.float32)
             std = np.full(self._shape, 1, dtype=np.float32)
             cov = np.diag(np.array(std ** 2))
-            dna = self._rng.multivariate_normal(mean=mean, cov=cov, size=size)
+            output = self._rng.multivariate_normal(mean=mean, cov=cov, size=size)
         else:
             std = self._std * mutation_factor
             cov = np.diag(np.array(std ** 2) + 1e-5)
             phi = self._rng.multivariate_normal(mean=self._mean, cov=cov, size=size, check_valid="ignore").astype(
                 np.float32)
             # TODO(ia): do we have to make sure that phi is in required range?
-            dna = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
-        return dna.astype(dtype=np.float32)
+            output = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
+        return output.astype(dtype=np.float32)
 
 
 def spherical_to_cartesian_n(r, phi):
