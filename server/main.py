@@ -1,7 +1,7 @@
 import PIL.Image
 
-from learning import generator
-from learning import preference_model
+from server import generator
+from server import preference_model
 
 
 def save_images():
@@ -9,7 +9,7 @@ def save_images():
         PIL.Image.fromarray(images[i], 'RGB').save(f'img{epoch}-{i}.png')
 
 
-generator = generator.Generator('../karras2018iclr-celebahq-1024x1024.tf')
+generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
 preference_model = preference_model.PreferenceModel()
 
 epoch = 0

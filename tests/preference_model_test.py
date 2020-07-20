@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from learning import preference_model
+from server import preference_model
 
 def test_spherical_to_cartesian_n_2():
     def compute(r, phi):
