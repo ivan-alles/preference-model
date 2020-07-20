@@ -1,26 +1,22 @@
 """
     Test generator inference from a saved tf.keras model.
 """
-import sys
-import os
 
 import numpy as np
 import tensorflow as tf
-import PIL.Image
 
-generator = tf.keras.models.load_model(sys.argv[1])
+class Generator:
+    def __init__(self):
+        self._generator = tf.keras.models.load_model('karras2018iclr-celebahq-1024x1024.tf')
 
-# Generate latent vectors.
-latents = np.random.RandomState(1000).randn(1000, *generator.input.shape[1:])  # 1000 random latents
-latents = latents[[477, 56, 83, 887, 583, 391, 86, 340, 341, 415]]  # hand-picked top-10
+    def generate(self, latents, minibatch_size = 8):
+        outputs = []
+        for i in range(0, len(latents), minibatch_size):
+            outputs.append(generator.predict(latents[i:i + minibatch_size]))
 
-images = generator.predict(latents)
+        images = np.concatenate(outputs)
+        images = np.clip(np.rint((images + 1.0) / 2.0 * 255.0), 0.0, 255.0).astype(np.uint8) # [-1,1] => [0, 255]
+        images = images.moveaxis(images, 1, 3)  # NCHW => NHWC
 
-# Convert images to PIL-compatible format.
-images = np.clip(np.rint((images + 1.0) / 2.0 * 255.0), 0.0, 255.0).astype(np.uint8)  # [-1,1] => [0,255]
-images = images.transpose(0, 2, 3, 1)  # NCHW => NHWC
-
-# Save images as PNG.
-for idx in range(images.shape[0]):
-    PIL.Image.fromarray(images[idx], 'RGB').save('img%d.png' % idx)
+        return images
 
