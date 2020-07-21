@@ -12,6 +12,8 @@ flake8 = "*"
 numpy = "*"
 tensorflow = "*"
 pillow = "*"
+flask = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.6"
