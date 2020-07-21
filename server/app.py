@@ -11,7 +11,7 @@ from PIL import Image
 
 rng = np.random.RandomState(1)
 
-def get_response_image():
+def get_image_data():
     # pil_img = Image.open("D:\ivan\projects\progressive_growing_of_gans\img8.png", mode='r')  # reads the PIL image
     image = np.empty((256, 256, 3), dtype=np.uint8)
     image = rng.uniform(0, 255, 3)
@@ -24,18 +24,18 @@ def get_response_image():
     return style
 
 # TODO(ia): replace ids by latents.
-IMAGES = [
+PICTURES = [
     {
         'id': uuid.uuid4().hex,
-        'image': get_response_image()
+        'data': get_image_data()
     },
     {
         'id': uuid.uuid4().hex,
-        'image': get_response_image()
+        'data': get_image_data()
     },
     {
         'id': uuid.uuid4().hex,
-        'image': get_response_image()
+        'data': get_image_data()
     }
 ]
 
@@ -47,9 +47,9 @@ app.config.from_object(__name__)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 
-@app.route('/books', methods=['GET'])
-def all_books():
-    response_object = {'status': 'success', 'books': IMAGES}
+@app.route('/images', methods=['GET'])
+def images():
+    response_object = {'status': 'success', 'images': PICTURES}
     return jsonify(response_object)
 
 if __name__ == '__main__':
