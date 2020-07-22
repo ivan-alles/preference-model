@@ -38,7 +38,15 @@ export default {
       const path = 'http://localhost:5000/images';
       axios.get(path)
         .then((res) => {
-          this.images = res.data.images;
+          this.images = [];
+          res.data.images.forEach((item) => {
+            const image = {
+              data: item.data,
+              latents: item.latents,
+              liked: false,
+            };
+            this.images.push(image);
+          });
         })
         .catch((error) => {
           // eslint-disable-next-line

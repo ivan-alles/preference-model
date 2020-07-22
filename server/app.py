@@ -26,17 +26,17 @@ PICTURES = [
     {
         'id': uuid.uuid4().hex,
         'data': get_image_data(),
-        'liked': False
+        'latents': [1.2, 2, 3]
     },
     {
         'id': uuid.uuid4().hex,
         'data': get_image_data(),
-        'liked': True
+        'latents': [4.4, 5, 6]
     },
     {
         'id': uuid.uuid4().hex,
         'data': get_image_data(),
-        'liked': False
+        'latents': [7, 8.8, 9.1]
     }
 ]
 
