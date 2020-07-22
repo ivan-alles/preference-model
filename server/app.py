@@ -9,18 +9,17 @@ import numpy as np
 from PIL import Image
 
 
-rng = np.random.RandomState(1)
+rng = np.random.RandomState()
 
 def get_image_data():
-    # pil_img = Image.open("D:\ivan\projects\progressive_growing_of_gans\img8.png", mode='r')  # reads the PIL image
     image = np.broadcast_to(rng.uniform(0, 255, 3).astype(np.uint8), (256, 256, 3))
     pil_img = Image.fromarray(image, 'RGB')
+    # pil_img = Image.open("D:\ivan\projects\progressive_growing_of_gans\img8.png", mode='r')  # reads the PIL image
     byte_arr = io.BytesIO()
     pil_img.save(byte_arr, format='PNG')  # convert the PIL image to byte array
-    encoded_img = base64.encodebytes(byte_arr.getvalue()).decode('ascii')
-    encoded_img = encoded_img.replace('\n', '')
-    style = f"data:image/png;base64,{encoded_img}"
-    return style
+    encoded_img = base64.b64encode(byte_arr.getvalue()).decode('ascii')
+    encoded_img = "data:image/png;base64," + encoded_img
+    return encoded_img
 
 # TODO(ia): replace ids by latents.
 PICTURES = [
