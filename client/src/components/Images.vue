@@ -54,12 +54,32 @@ export default {
           console.error(error);
         });
     },
+    learn() {
+      const path = 'http://localhost:5000/learn';
+      const likes = [];
+      this.images.forEach((item) => {
+        if (item.liked) {
+          likes.push(item.latents);
+          // eslint-disable-next-line
+          item.liked = false;
+        }
+      });
+      if (likes.length === 0) {
+        return;
+      }
+      axios.post(path, likes)
+        .then(() => {
+          this.getImages();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    },
     toggleLike(image) {
       this.image = image;
       // eslint-disable-next-line
       image.liked = !image.liked;
-    },
-    learn() {
     },
   },
   created() {

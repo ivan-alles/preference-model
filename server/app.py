@@ -2,7 +2,7 @@ import base64
 import io
 import uuid
 
-from flask import Flask, jsonify
+import flask
 from flask_cors import CORS
 
 import numpy as np
@@ -26,7 +26,7 @@ def encode_image(image):
 
 
 # instantiate the app
-app = Flask(__name__)
+app = flask.Flask(__name__)
 app.config.from_object(__name__)
 
 # enable CORS
@@ -37,7 +37,7 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 def images():
     """
     Generate the next portion of images based on current settings.
-    :return:
+    :return: an HTTP response containing a list of image objects.
     """
     num_images = 3
     images = []
@@ -50,7 +50,18 @@ def images():
         }
         images.append(image_object)
     response_object = {'status': 'success', 'images': images}
-    return jsonify(response_object)
+    return flask.jsonify(response_object)
+
+
+@app.route('/learn', methods=['POST'])
+def learn():
+    """
+    Learn user preferences from likes.
+    :return: an HTTP response.
+    """
+    post_data = flask.request.get_json()
+    response_object = {'status': 'success'}
+    return flask.jsonify(response_object)
 
 
 if __name__ == '__main__':
