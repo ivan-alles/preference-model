@@ -9,8 +9,11 @@
               <td>
                 <img :src="image.data">
               </td>
-              <td>
-                <div onclick="onLike(this)" class="fa fa-heart-o"/>
+              <td v-if="image.liked">
+                <div class="fa fa-heart liked" @click="toggleLike(image)"/>
+              </td>
+              <td v-else>
+                <div class="fa fa-heart-o" @click="toggleLike(image)"/>
               </td>
             </tr>
           </tbody>
@@ -42,12 +45,16 @@ export default {
           console.error(error);
         });
     },
+    toggleLike(image) {
+      this.image = image;
+      // eslint-disable-next-line
+      image.liked = !image.liked;
+    },
   },
   created() {
     this.getImages();
   },
 };
-
 
 </script>
 
@@ -68,11 +75,11 @@ img {
   color: darkgray;
 }
 
-.like {
+.liked {
   color: red;
 }
 
-.like:hover {
+.liked:hover {
   color: red;
 }
 </style>

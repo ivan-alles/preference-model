@@ -25,15 +25,18 @@ def get_image_data():
 PICTURES = [
     {
         'id': uuid.uuid4().hex,
-        'data': get_image_data()
+        'data': get_image_data(),
+        'liked': False
     },
     {
         'id': uuid.uuid4().hex,
-        'data': get_image_data()
+        'data': get_image_data(),
+        'liked': True
     },
     {
         'id': uuid.uuid4().hex,
-        'data': get_image_data()
+        'data': get_image_data(),
+        'liked': False
     }
 ]
 
