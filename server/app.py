@@ -35,6 +35,10 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 @app.route('/images', methods=['GET'])
 def images():
+    """
+    Generate the next portion of images based on current settings.
+    :return:
+    """
     num_images = 3
     images = []
     for i in range(num_images):
