@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row">
       <div class="col-sm-10">
-        <h1>Make You Dream Come True</h1>
+        <h1>Make Your Dream Come True</h1>
         <table class="table table-hover">
           <tbody>
             <tr v-for="(image, index) in images" :key="index">
@@ -49,6 +49,6 @@ export default {
 <style scoped>
 img {
   width: 200px;
-  height: 200px;
+  height: 2r00px;
 }
 </style>
