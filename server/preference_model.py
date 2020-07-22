@@ -2,13 +2,13 @@ import numpy as np
 
 
 class PreferenceModel:
-    def __init__(self, shape=512, default_std=0.01):
+    def __init__(self, shape=512, default_std=0.01, rng=None):
         """
         Create model object.
         :param shape: shape of the vector to learn the preference from.
         :param default_std: the value of standard deviation to use if we learn from only one training example.
         """
-        self._rng = np.random.RandomState(0)
+        self._rng = rng or np.random.RandomState(0)
         self._shape = shape
         self._default_std = default_std
         # Learnable parameters

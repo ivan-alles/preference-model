@@ -11,11 +11,15 @@ from PIL import Image
 from server import generator
 from server import preference_model
 
-
 rng = np.random.RandomState()
 
-generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
-preference_model = preference_model.PreferenceModel()
+#  Set to true for a fast startup and responses. Is useful to test the client.
+DUMMY_IMAGES = False
+
+if not DUMMY_IMAGES:
+    generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
+
+preference_model = preference_model.PreferenceModel(rng=rng)
 
 def encode_image(image):
     """
@@ -47,10 +51,14 @@ def images():
     """
     num_images = 3
     latents = preference_model.generate(num_images)
-    images = generator.generate(latents)
+    if DUMMY_IMAGES:
+        images = np.broadcast_to(rng.uniform(0, 255, (num_images, 1, 1, 3)).astype(np.uint8),
+                                 (num_images, 256, 256, 3))
+    else:
+        images = generator.generate(latents)
+
     image_objects = []
     for i in range(num_images):
-        #image = np.broadcast_to(rng.uniform(0, 255, 3).astype(np.uint8), (256, 256, 3))
         image = images[i]
         image_object = {
             'id': uuid.uuid4().hex,
