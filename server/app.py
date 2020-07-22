@@ -8,8 +8,14 @@ from flask_cors import CORS
 import numpy as np
 from PIL import Image
 
+from server import generator
+from server import preference_model
+
 
 rng = np.random.RandomState()
+
+generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
+preference_model = preference_model.PreferenceModel()
 
 def encode_image(image):
     """
@@ -40,16 +46,19 @@ def images():
     :return: an HTTP response containing a list of image objects.
     """
     num_images = 3
-    images = []
+    latents = preference_model.generate(num_images)
+    images = generator.generate(latents)
+    image_objects = []
     for i in range(num_images):
-        image = np.broadcast_to(rng.uniform(0, 255, 3).astype(np.uint8), (256, 256, 3))
+        #image = np.broadcast_to(rng.uniform(0, 255, 3).astype(np.uint8), (256, 256, 3))
+        image = images[i]
         image_object = {
             'id': uuid.uuid4().hex,
             'data': encode_image(image),
-            'latents': rng.randn(512).tolist()
+            'latents': latents[i].tolist()  # rng.randn(512).tolist()
         }
-        images.append(image_object)
-    response_object = {'status': 'success', 'images': images}
+        image_objects.append(image_object)
+    response_object = {'status': 'success', 'images': image_objects}
     return flask.jsonify(response_object)
 
 
@@ -60,6 +69,8 @@ def learn():
     :return: an HTTP response.
     """
     post_data = flask.request.get_json()
+    latents = np.array(post_data)
+    preference_model.train(latents)
     response_object = {'status': 'success'}
     return flask.jsonify(response_object)
 
