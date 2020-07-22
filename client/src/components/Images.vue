@@ -2,17 +2,12 @@
   <div class="container">
     <div class="row">
       <div class="col-sm-10">
-        <h1>Preference Model</h1>
+        <h1>Make You Dream Come True</h1>
         <table class="table table-hover">
-          <thead>
-            <tr>
-              <th scope="col">Image</th>
-            </tr>
-          </thead>
           <tbody>
             <tr v-for="(image, index) in images" :key="index">
               <td>
-                <img :src="image.data" width="200px" height="200px">
+                <img :src="image.data">
               </td>
             </tr>
           </tbody>
@@ -50,3 +45,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+img {
+  width: 200px;
+  height: 200px;
+}
+</style>
