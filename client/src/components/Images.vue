@@ -9,6 +9,9 @@
               <td>
                 <img :src="image.data">
               </td>
+              <td>
+                <div onclick="onLike(this)" class="fa fa-heart-o"/>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -44,11 +47,32 @@ export default {
     this.getImages();
   },
 };
+
+
 </script>
 
 <style scoped>
 img {
   width: 200px;
   height: 200px;
+}
+
+.fa {
+  font-size: 50px;
+  cursor: pointer;
+  user-select: none;
+  color: gray;
+}
+
+.fa:hover {
+  color: darkgray;
+}
+
+.like {
+  color: red;
+}
+
+.like:hover {
+  color: red;
 }
 </style>
