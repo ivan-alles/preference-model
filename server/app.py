@@ -46,7 +46,7 @@ def images():
         image_object = {
             'id': uuid.uuid4().hex,
             'data': encode_image(image),
-            'latents': [4.4, 5, 6]
+            'latents': rng.randn(512).tolist()
         }
         images.append(image_object)
     response_object = {'status': 'success', 'images': images}
