@@ -3,6 +3,8 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Make Your Dream Come True</h1>
+        <button @click="generate()" type="button" class="btn btn-primary">More pictures</button>
+        <button @click="learn()" type="button" class="btn btn-primary">Learn from likes</button>
         <table class="table table-hover">
           <tbody>
             <tr v-for="(image, index) in images" :key="index">
@@ -58,6 +60,10 @@ export default {
       // eslint-disable-next-line
       image.liked = !image.liked;
     },
+    generate() {
+    },
+    learn() {
+    },
   },
   created() {
     this.getImages();
@@ -90,4 +96,9 @@ img {
 .liked:hover {
   color: red;
 }
+
+button {
+  margin: 0 0.5rem 0 0;
+}
+
 </style>
