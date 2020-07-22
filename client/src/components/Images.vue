@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Make Your Dream Come True</h1>
-        <button @click="generate()" type="button" class="btn btn-primary">More pictures</button>
+        <button @click="getImages()" type="button" class="btn btn-primary">More pictures</button>
         <button @click="learn()" type="button" class="btn btn-primary">Learn from likes</button>
         <table class="table table-hover">
           <tbody>
@@ -40,14 +40,13 @@ export default {
       const path = 'http://localhost:5000/images';
       axios.get(path)
         .then((res) => {
-          this.images = [];
           res.data.images.forEach((item) => {
             const image = {
               data: item.data,
               latents: item.latents,
               liked: false,
             };
-            this.images.push(image);
+            this.images.unshift(image);
           });
         })
         .catch((error) => {
@@ -60,12 +59,11 @@ export default {
       // eslint-disable-next-line
       image.liked = !image.liked;
     },
-    generate() {
-    },
     learn() {
     },
   },
   created() {
+    this.images = [];
     this.getImages();
   },
 };
