@@ -12,8 +12,7 @@
           <tbody>
             <tr v-for="(image, index) in images" :key="index">
               <td>
-                <div :style="image.data">
-                </div>
+                <img :src="image.data" width="200px" height="200px">
               </td>
             </tr>
           </tbody>

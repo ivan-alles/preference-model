@@ -13,14 +13,13 @@ rng = np.random.RandomState(1)
 
 def get_image_data():
     # pil_img = Image.open("D:\ivan\projects\progressive_growing_of_gans\img8.png", mode='r')  # reads the PIL image
-    image = np.empty((256, 256, 3), dtype=np.uint8)
-    image = rng.uniform(0, 255, 3)
+    image = np.broadcast_to(rng.uniform(0, 255, 3).astype(np.uint8), (256, 256, 3))
     pil_img = Image.fromarray(image, 'RGB')
     byte_arr = io.BytesIO()
     pil_img.save(byte_arr, format='PNG')  # convert the PIL image to byte array
-    encoded_img = base64.encodebytes(byte_arr.getvalue()).decode('ascii') # encode as base64
+    encoded_img = base64.encodebytes(byte_arr.getvalue()).decode('ascii')
     encoded_img = encoded_img.replace('\n', '')
-    style = f"width: 200px; height: 200px; background-size: cover; background-image: url(data:image/png;base64,{encoded_img});"
+    style = f"data:image/png;base64,{encoded_img}"
     return style
 
 # TODO(ia): replace ids by latents.
