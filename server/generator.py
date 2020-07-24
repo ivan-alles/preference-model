@@ -15,8 +15,7 @@ class Generator:
             outputs.append(self._generator.predict(latents[i:i + batch_size]))
 
         images = np.concatenate(outputs)
-        images = np.clip(np.rint((images + 1.0) / 2.0 * 255.0), 0.0, 255.0).astype(np.uint8)  # [-1,1] => [0, 255]
-        images = np.moveaxis(images, 1, 3)  # NCHW => NHWC
+        images = np.rint(np.clip(images, 0, 1) * 255.0).astype(np.uint8)
 
         return images
 
