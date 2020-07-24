@@ -1,5 +1,3 @@
-*.png
-
 # TF models
 *.tf/
 
