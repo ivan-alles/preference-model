@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row">
       <div class="col-sm-10">
-        <h1>Make Your Dream Come True</h1>
+        <h1>Learn What You Like From Your Likes</h1>
         <button @click="getImages()" type="button" class="btn btn-primary">More pictures</button>
         <button @click="learn()" type="button" class="btn btn-primary">Learn from likes</button>
         <table class="table table-hover">
