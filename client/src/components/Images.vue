@@ -28,6 +28,19 @@
 <script>
 import axios from 'axios';
 
+class Backend {
+    async getImages() {
+      const path = 'http://localhost:5000/images';
+      let result = await axios.get(path);
+      return result.data.images;
+    }
+
+    async learn(likes) {
+      const path = 'http://localhost:5000/learn';
+      await axios.post(path, likes);
+    }
+}
+
 export default {
   data() {
     return {
@@ -36,25 +49,19 @@ export default {
   },
 
   methods: {
-    getImages() {
-      const path = 'http://localhost:5000/images';
-      axios.get(path)
-        .then((res) => {
-          res.data.images.forEach((item) => {
-            const image = {
-              data: item.data,
-              latents: item.latents,
-              liked: false,
-            };
-            this.images.unshift(image);
-          });
-        })
-        .catch((error) => {
-          console.error(error);
+    async getImages() {
+        const images = await this.backend.getImages();
+        console.log(images);
+        images.forEach((item) => {
+          const image = {
+            data: item.data,
+            latents: item.latents,
+            liked: false,
+          };
+          this.images.unshift(image);
         });
     },
-    learn() {
-      const path = 'http://localhost:5000/learn';
+    async learn() {
       const likes = [];
       this.images.forEach((item) => {
         if (item.liked) {
@@ -65,13 +72,8 @@ export default {
       if (likes.length === 0) {
         return;
       }
-      axios.post(path, likes)
-        .then(() => {
-          this.getImages();
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      await this.backend.learn(likes);
+      await this.getImages();
     },
     toggleLike(image) {
       this.image = image;
@@ -80,6 +82,7 @@ export default {
   },
   created() {
     this.images = [];
+    this.backend = new Backend();
     this.getImages();
   },
 };
