@@ -3,8 +3,9 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Learn What You Like From Your Likes</h1>
-        <button @click="getImages()" type="button" class="btn btn-primary">More pictures</button>
-        <button @click="learn()" type="button" class="btn btn-primary">Learn from likes</button>
+        <button @click="getImages()" type="button">More pictures</button>
+        <button @click="learn()" type="button">Learn from likes</button>
+        <button @click="resetLearning()" type="button">Reset learning</button>
         <table class="table table-hover">
           <tbody>
             <tr v-for="(image, index) in images" :key="index">
@@ -72,6 +73,11 @@ export default {
       }
       await this.backend.learn(likes);
       await this.getImages();
+    },
+    async resetLearning() {
+        const likes = [];
+        await this.backend.learn(likes);
+        await this.getImages();
     },
     toggleLike(image) {
       this.image = image;
