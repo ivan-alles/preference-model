@@ -1,6 +1,5 @@
 import base64
 import io
-import uuid
 
 import flask
 from flask_cors import CORS
@@ -61,7 +60,6 @@ def images():
     for i in range(num_images):
         image = images[i]
         image_object = {
-            'id': uuid.uuid4().hex,
             'data': encode_image(image),
             'latents': latents[i].tolist()  # rng.randn(512).tolist()
         }
