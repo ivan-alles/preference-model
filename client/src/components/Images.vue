@@ -51,24 +51,22 @@ export default {
   methods: {
     async getImages() {
         const images = await this.backend.getImages();
-        console.log(images);
-        images.forEach((item) => {
-          const image = {
-            data: item.data,
-            latents: item.latents,
+        for(let image of images) {
+          this.images.unshift({
+            data: image.data,
+            latents: image.latents,
             liked: false,
-          };
-          this.images.unshift(image);
-        });
+          });
+        }
     },
     async learn() {
       const likes = [];
-      this.images.forEach((item) => {
-        if (item.liked) {
-          likes.push(item.latents);
-          item.liked = false;
+      for(let image of this.images) {
+        if (image.liked) {
+          likes.push(image.latents);
+          image.liked = false;
         }
-      });
+      }
       if (likes.length === 0) {
         return;
       }
