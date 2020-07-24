@@ -50,7 +50,6 @@ export default {
           });
         })
         .catch((error) => {
-          // eslint-disable-next-line
           console.error(error);
         });
     },
@@ -60,7 +59,6 @@ export default {
       this.images.forEach((item) => {
         if (item.liked) {
           likes.push(item.latents);
-          // eslint-disable-next-line
           item.liked = false;
         }
       });
@@ -72,13 +70,11 @@ export default {
           this.getImages();
         })
         .catch((error) => {
-          // eslint-disable-next-line
           console.error(error);
         });
     },
     toggleLike(image) {
       this.image = image;
-      // eslint-disable-next-line
       image.liked = !image.liked;
     },
   },
