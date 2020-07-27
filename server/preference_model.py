@@ -52,7 +52,7 @@ class SphericalCoordinatesPreferenceModel:
 
 
 class VMFPreferenceModel:
-    def __init__(self, shape=512, default_kappa=10.0, rng=None):
+    def __init__(self, shape=512, default_kappa=10, rng=None):
         """
         Create model object.
         :param shape: shape of the vector to learn the preference from.
@@ -78,7 +78,7 @@ class VMFPreferenceModel:
 
         print(self._kappa)
 
-    def generate(self, size, mutation_factor=100000):
+    def generate(self, size, mutation_factor=1):
         """
         Generate new data for current model parameters.
         :param size the number of vectors to generate.
@@ -227,7 +227,7 @@ def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
     if np.abs(np.linalg.norm(mu) - 1) > epsilon:
         raise ValueError(f'Mu must be a unit vector')
 
-    c = np.exp(kappa)
+    c = np.exp(1)
 
     while len(result) < size:
         x = sample_uniform_on_sphere(rng, dim, 1)[0]
@@ -236,7 +236,7 @@ def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
             continue
         x /= n
         u = rng.uniform(0, c)
-        f = np.exp(kappa * np.dot(x, mu))
+        f = np.exp(kappa * (np.dot(x, mu) - 1) + 1)
         if u <= f:
             result.append(x)
 

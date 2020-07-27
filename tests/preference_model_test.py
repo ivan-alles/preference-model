@@ -271,7 +271,7 @@ def test_sample_von_moses_fisher_plot():
         return
 
     rng = np.random.RandomState(seed=1)
-    points = preference_model.sample_von_moses_fisher(rng, 3, [1, 0, 0], 1, 200)
+    points = preference_model.sample_von_moses_fisher(rng, 3, [1, 0, 0], 10, 200)
 
     fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
     points = np.rollaxis(points, 1, 0)
