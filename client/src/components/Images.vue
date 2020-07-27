@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { Backend } from '@/server-backend.js'
+import { Engine } from '@/server-engine'
 
 export default {
   data() {
@@ -38,7 +38,7 @@ export default {
 
   methods: {
     async getImages() {
-        const images = await this.backend.getImages();
+        const images = await this.engine.getImages();
         for(let image of images) {
           this.images.unshift({
             data: image.data,
@@ -58,12 +58,12 @@ export default {
       if (likes.length === 0) {
         return;
       }
-      await this.backend.learn(likes);
+      await this.engine.learn(likes);
       await this.getImages();
     },
     async resetLearning() {
         const likes = [];
-        await this.backend.learn(likes);
+        await this.engine.learn(likes);
         await this.getImages();
     },
     toggleLike(image) {
@@ -73,7 +73,7 @@ export default {
   },
   created() {
     this.images = [];
-    this.backend = new Backend();
+    this.engine = new Engine();
     this.getImages();
   },
 };
