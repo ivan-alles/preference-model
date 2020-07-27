@@ -1,6 +1,12 @@
-import math
 import numpy as np
 from server import preference_model
+
+# Set to True to show plot.
+INTERACTIVE = False
+
+if INTERACTIVE:
+    import matplotlib.pyplot as plt
+
 
 def test_spherical_to_cartesian_n_2():
     def compute(r, phi):
@@ -226,3 +232,37 @@ def test_mean_of_angles():
         [np.pi, 3*np.pi, -5*np.pi, 9*np.pi],
     ]), axis=1)
     assert np.allclose([0, np.pi], m_act)
+
+def test_sample_uniform_on_sphere():
+    # Generate a n-sphere and make sure that there are a roughly
+    # equal number of points around each of a chosen vectors.
+    rng = np.random.RandomState(seed=1)
+    dim = 10
+    num_points = 2000000
+    points = preference_model.sample_uniform_on_sphere(rng, dim, num_points)
+    points /= np.linalg.norm(points, axis=-1, keepdims=True)
+
+    vectors = np.eye(dim)
+
+    dist = np.dot(points, vectors)
+    cos_threshold = 0.8  # Search for points such that cos(v, p) > cos_threshold
+
+    close_points = (dist > cos_threshold).sum(axis=0)
+    close_points_ratio = close_points / num_points
+    close_points_ratio /= close_points_ratio.mean()
+    for i in range(len(close_points_ratio)):
+        assert np.abs(close_points_ratio[i] - 1) < 0.1
+
+
+def test_sample_uniform_on_sphere_plot():
+    if not INTERACTIVE:
+        return
+
+    rng = np.random.RandomState(seed=1)
+    points = preference_model.sample_uniform_on_sphere(rng, 3, 1000)
+    points /= np.linalg.norm(points, axis=-1, keepdims=True)
+
+    fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
+    points = np.rollaxis(points, 1, 0)
+    ax.scatter(*points)
+    plt.show()

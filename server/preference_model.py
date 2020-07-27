@@ -42,6 +42,7 @@ class PreferenceModel:
         if self._std is None:
             # Generate uniform distribution on the sphere by the Muller method.
             # See
+            # https://mathworld.wolfram.com/HyperspherePointPicking.html
             # https://stackoverflow.com/questions/15880367/python-uniform-distribution-of-points-on-4-dimensional-sphere
             # http://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
             mean = np.zeros(self._shape, dtype=np.float32)
@@ -142,3 +143,19 @@ def mean_of_angles(angles, axis=None):
     c = np.cos(angles)
     m = np.arctan2(s.sum(axis=axis), c.sum(axis=axis))
     return m
+
+def sample_uniform_on_sphere(rng, dim, size):
+    """
+    Sample uniform random points on n-sphere.
+    See
+    https://mathworld.wolfram.com/HyperspherePointPicking.html
+    https://stackoverflow.com/questions/15880367/python-uniform-distribution-of-points-on-4-dimensional-sphere
+    http://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
+
+    :param rnd a random number generator to use.
+    :param dim: dimension of the space (e.g. 3 for 3d).
+    :param size: number of points.
+    :return: an array uniformly distributed points. The normalization to the unit length is not done to avoid
+    division by zero and because the is done by the model.
+    """
+    return rng.normal(size=(size, dim))
