@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class PreferenceModel:
+class SphericalCoordinatesPreferenceModel:
     def __init__(self, shape=512, default_std=0.01, rng=None):
         """
         Create model object.
@@ -12,8 +12,8 @@ class PreferenceModel:
         self._shape = shape
         self._default_std = default_std
         # Learnable parameters
-        self._mean = None  # Input mean
-        self._std = None   # Input std
+        self._mean = None
+        self._std = None
 
     def train(self, training_examples):
         if len(training_examples) == 0:
@@ -49,6 +49,44 @@ class PreferenceModel:
             # TODO(ia): do we have to make sure that phi is in required range?
             output = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
         return output.astype(dtype=np.float32)
+
+
+class VMFPreferenceModel:
+    def __init__(self, shape=512, default_kappa=10.0, rng=None):
+        """
+        Create model object.
+        :param shape: shape of the vector to learn the preference from.
+        :param default_kappa: the value of kappa to use if we learn from only one training example.
+        """
+        self._rng = rng or np.random.RandomState(0)
+        self._shape = shape
+        self._default_kappa = default_kappa
+        # Learnable parameters
+        self._mu = np.array((1,) + (0,) * (self._shape - 1))
+        self._kappa = 0
+
+    def train(self, training_examples):
+        if len(training_examples) == 0:
+            # Reset the trainable parameters and use a uniform distribution.
+            self._mu = np.array((1,) + (0,) * (self._shape - 1))
+            self._kappa = 0
+        elif len(training_examples) == 1:
+            self._mu = training_examples[0]
+            self._kappa = self._default_kappa
+        else:
+            self._mu, self._kappa = estimate_von_moses_fisher(training_examples)
+
+        print(self._kappa)
+
+    def generate(self, size, mutation_factor=100000):
+        """
+        Generate new data for current model parameters.
+        :param size the number of vectors to generate.
+        :param mutation_factor the larger the factor, the more mutation has the output
+        :return: an array of vectors similar to those used for training.
+        """
+        output = sample_von_moses_fisher(self._rng, self._shape, self._mu, self._kappa / mutation_factor, size)
+        return output
 
 
 def spherical_to_cartesian_n(r, phi):
@@ -203,6 +241,4 @@ def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
             result.append(x)
 
     return np.array(result)
-
-
 

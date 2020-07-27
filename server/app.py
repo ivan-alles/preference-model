@@ -18,7 +18,7 @@ DUMMY_IMAGES = False
 if not DUMMY_IMAGES:
     generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
 
-preference_model = preference_model.PreferenceModel(rng=rng)
+preference_model = preference_model.VMFPreferenceModel(rng=rng)
 
 def encode_image(image):
     """
