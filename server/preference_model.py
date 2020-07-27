@@ -144,10 +144,65 @@ def sample_uniform_on_sphere(rng, dim, size):
     https://stackoverflow.com/questions/15880367/python-uniform-distribution-of-points-on-4-dimensional-sphere
     http://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
 
-    :param rnd a random number generator to use.
+    :param rng a random number generator to use.
     :param dim: dimension of the space (e.g. 3 for 3d).
     :param size: number of points.
     :return: an array uniformly distributed points. The normalization to the unit length is not done to avoid
     division by zero and because the is done by the model.
     """
     return rng.normal(size=(size, dim))
+
+def estimate_von_moses_fisher(x):
+    """
+    Estimate parameters mu, kappa of von Moses-Fisher distribution in R**p space.
+    See https://en.wikipedia.org/wiki/Von_Mises%E2%80%93Fisher_distribution
+    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.717.1461&rep=rep1&type=pdf
+
+    :param x: a set of measurement in an array n x p.
+    :return: mu, kappa
+    """
+    p = x.shape[-1]
+    xm = np.mean(x, axis=0)
+    rm = np.linalg.norm(xm)
+    mu = x / rm
+    kappa = rm * (p - rm*rm) / (1 - rm*rm)
+
+    return mu, kappa
+
+def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
+    """
+    Sample from von Moses-Fisher distribution n-sphere.
+
+    We use the rejection sampling algorithm: https://en.wikipedia.org/wiki/Rejection_sampling
+
+    :param rng a random number generator to use.
+    :param dim: dimension of the space (e.g. 3 for 3d).
+    :param mu: mu parameter of the distribution, equivalent to the mean.
+    :param kappa: kappa parameter of the distribution. The larger kappa, the more concentrated are the points.
+    Zero is equivalent to the uniform distribution.
+    :param size: number of points.
+    :return: an array of unit vectors in R**dim space.
+    """
+
+    result = []
+    mu = np.array(mu, dtype=np.float64)
+    if np.abs(np.linalg.norm(mu) - 1) > epsilon:
+        raise ValueError(f'Mu must be a unit vector')
+
+    c = np.exp(kappa)
+
+    while len(result) < size:
+        x = sample_uniform_on_sphere(rng, dim, 1)[0]
+        n = np.linalg.norm(x)
+        if n < epsilon:
+            continue
+        x /= n
+        u = rng.uniform(0, c)
+        f = np.exp(kappa * np.dot(x, mu))
+        if u <= f:
+            result.append(x)
+
+    return np.array(result)
+
+
+

@@ -1,11 +1,6 @@
 import numpy as np
 from server import preference_model
-
-# Set to True to show plot.
-INTERACTIVE = False
-
-if INTERACTIVE:
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 def test_spherical_to_cartesian_n_2():
@@ -256,7 +251,8 @@ def test_sample_uniform_on_sphere():
 
 
 def test_sample_uniform_on_sphere_plot():
-    if not INTERACTIVE:
+    # Set to False to see the plot
+    if True:
         return
 
     rng = np.random.RandomState(seed=1)
@@ -266,4 +262,21 @@ def test_sample_uniform_on_sphere_plot():
     fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
     points = np.rollaxis(points, 1, 0)
     ax.scatter(*points)
+    plt.show()
+
+
+def test_sample_von_moses_fisher_plot():
+    # Set to False to see the plot
+    if False:
+        return
+
+    rng = np.random.RandomState(seed=1)
+    points = preference_model.sample_von_moses_fisher(rng, 3, [1, 0, 0], 1, 200)
+
+    fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
+    points = np.rollaxis(points, 1, 0)
+    ax.scatter(*points)
+    ax.set_xlim(-1.01, 1.01)
+    ax.set_ylim(-1.01, 1.01)
+    ax.set_zlim(-1.01, 1.01)
     plt.show()
