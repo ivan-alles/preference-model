@@ -233,6 +233,7 @@ def test_mean_of_angles():
     ]), axis=1)
     assert np.allclose([0, np.pi], m_act)
 
+
 def test_sample_uniform_on_sphere():
     # Generate a n-sphere and make sure that there are a roughly
     # equal number of points around each of a chosen vectors.

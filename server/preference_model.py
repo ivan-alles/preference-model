@@ -40,15 +40,7 @@ class PreferenceModel:
         :return: an array of vectors similar to those used for training.
         """
         if self._std is None:
-            # Generate uniform distribution on the sphere by the Muller method.
-            # See
-            # https://mathworld.wolfram.com/HyperspherePointPicking.html
-            # https://stackoverflow.com/questions/15880367/python-uniform-distribution-of-points-on-4-dimensional-sphere
-            # http://extremelearning.com.au/how-to-generate-uniformly-random-points-on-n-spheres-and-n-balls/
-            mean = np.zeros(self._shape, dtype=np.float32)
-            std = np.full(self._shape, 1, dtype=np.float32)
-            cov = np.diag(np.array(std ** 2))
-            output = self._rng.multivariate_normal(mean=mean, cov=cov, size=size)
+            output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
             std = self._std * mutation_factor
             cov = np.diag(np.array(std ** 2) + 1e-5)
