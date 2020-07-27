@@ -267,7 +267,7 @@ def test_sample_uniform_on_sphere_plot():
 
 def test_sample_von_moses_fisher_plot():
     # Set to False to see the plot
-    if False:
+    if True:
         return
 
     rng = np.random.RandomState(seed=1)
@@ -280,3 +280,17 @@ def test_sample_von_moses_fisher_plot():
     ax.set_ylim(-1.01, 1.01)
     ax.set_zlim(-1.01, 1.01)
     plt.show()
+
+def test_estimate_von_moses_fisher():
+    rng = np.random.RandomState(seed=1)
+    dim = 3
+    set_mu = rng.uniform(-1, 1, size=dim)
+    set_mu /= np.linalg.norm(set_mu)
+    set_kappa = 2
+
+    x = preference_model.sample_von_moses_fisher(rng, dim, set_mu, set_kappa, 1000)
+    est_mu, est_kappa = preference_model.estimate_von_moses_fisher(x)
+    assert np.dot(set_mu, est_mu) > 0.99
+    assert np.abs(est_kappa / set_kappa - 1) < 0.1
+
+

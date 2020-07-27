@@ -164,7 +164,7 @@ def estimate_von_moses_fisher(x):
     p = x.shape[-1]
     xm = np.mean(x, axis=0)
     rm = np.linalg.norm(xm)
-    mu = x / rm
+    mu = xm / rm
     kappa = rm * (p - rm*rm) / (1 - rm*rm)
 
     return mu, kappa
