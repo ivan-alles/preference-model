@@ -52,70 +52,42 @@ class SphericalCoordinatesPreferenceModel:
 
 
 class DimRedPreferenceModel:
-    def __init__(self, dna_shape, default_std = 0.3):
-        if len(dna_shape) != 1:
-            raise ValueError("DNA must be a vector")
-        super().__init__(dna_shape)
-        self._default_std = default_std
-        self._row_space_dim = dna_shape[0]
-        # Init mean, std
-        self.train([])
-
-    @property
-    def mean(self):
-        return self._mean
-
-    @property
-    def std(self):
-        return self._std
-
-    @property
-    def basis(self):
-        return self._basis
-
-    def get_scaled_std(self):
-        std = np.copy(self._std)
-        std[self._row_space_dim:] = self._default_std
-        std *= self.std_scale
-        return std
-
-    def train(self, elite_dna, weights=None):
-        if len(elite_dna) == 0:
-            # Reset mean, std
-            self._mean = np.zeros(self._dna_shape, dtype=np.float32)
-            self._std = np.full(self._dna_shape, 1, dtype=np.float32)
-            self._basis = np.identity(self._dna_shape[0])
-            return
-
-        m = elite_dna.shape[0]
-        n = elite_dna.shape[1]
-        if n != self._dna_shape[0]:
-            raise ValueError("Wrong shape of elite_dna")
-        self._mean = elite_dna.mean(axis=0)
-        elite_c = elite_dna - self._mean.reshape(1, -1)
-        u, s, vt = np.linalg.svd(elite_c)
-        singular_value_e = 1e-5
-        self._row_space_dim = (s > singular_value_e).sum()
-        self._basis = vt
-        elite_b = np.dot(elite_c, self._basis.T)
-        self._std = elite_b.std(axis=0)
-
-
-
-    def generate(self, count):
+    def __init__(self, shape=512, default_cov=0.01, rng=None):
         """
-        Generate new DNAs with current model parameters.
-        :return: a vector of DNAs.
+        Create model object.
+        :param shape: shape of the vector to learn the preference from.
+        :param default_std: the value of standard deviation to use if we learn from only one training example.
         """
-        std = self.get_scaled_std()
+        self._rng = rng or np.random.RandomState(0)
+        self._shape = shape
+        self._default_cov = default_cov
+        # Learnable parameters are inside the DimensionalityReduciton instance.
+        self._dim_red = None
 
-        cov = np.diag(np.array(std ** 2))
-        dna_b = self._rng.multivariate_normal(mean=np.zeros(self._dna_shape), cov=cov, size=count, check_valid="ignore")
-        dna_c = np.dot(dna_b, self._basis)
-        dna = dna_c + self._mean.reshape(1, -1)
-        dna = dna.astype(np.float32)
+    def train(self, training_examples):
+        if len(training_examples) == 0:
+            # Reset the trainable parameters and use a uniform distribution.
+            self._dim_red = None
+        else:
+            # Put the points onto the sphere.
+            # Todo(ia): division by zero?
+            training_examples /= np.linalg.norm(training_examples, axis=1, keepdims=True)
+            self._dim_red = DimensionalityReduction(training_examples, 0.99)
 
-        return dna
+    def generate(self, size, mutation_factor=1):
+        """
+        Generate new data for current model parameters.
+        :param size the number of vectors to generate.
+        :param mutation_factor the larger the factor, the more mutation has the output
+        :return: an array of vectors similar to those used for training.
+        """
+        if self._dim_red is None:
+            output = sample_uniform_on_sphere(self._rng, self._shape, size)
+        else:
+            cov = np.maximum(self._dim_red.cov, self._default_cov) * mutation_factor
+            output_r = self._rng.multivariate_normal(mean=np.zeros_like(cov), cov=np.diag(cov), size=size)
+            output = self._dim_red.restore_dim(output_r)
+        return output
 
 def spherical_to_cartesian_n(r, phi):
     """
@@ -261,7 +233,12 @@ class DimensionalityReduction:
         self._mean = x.mean(axis=0)
         x -= self._mean
         u, s, vt = np.linalg.svd(x)
-        dim_r = len(s) - (np.cumsum(s) / np.sum(s) >= accuracy).sum() + 1
+        sum_s = np.sum(s)
+        epsilon = 1e-5
+        if sum_s > epsilon:
+            dim_r = len(s) - (np.cumsum(s) / sum_s  >= accuracy).sum() + 1
+        else:
+            dim_r = 1
 
         cov = s**2 / len(x)
         self.cov = cov[:dim_r]
