@@ -51,44 +51,6 @@ class SphericalCoordinatesPreferenceModel:
         return output.astype(dtype=np.float32)
 
 
-class VMFPreferenceModel:
-    def __init__(self, shape=512, default_kappa=10, rng=None):
-        """
-        Create model object.
-        :param shape: shape of the vector to learn the preference from.
-        :param default_kappa: the value of kappa to use if we learn from only one training example.
-        """
-        self._rng = rng or np.random.RandomState(0)
-        self._shape = shape
-        self._default_kappa = default_kappa
-        # Learnable parameters
-        self._mu = np.array((1,) + (0,) * (self._shape - 1))
-        self._kappa = 0
-
-    def train(self, training_examples):
-        if len(training_examples) == 0:
-            # Reset the trainable parameters and use a uniform distribution.
-            self._mu = np.array((1,) + (0,) * (self._shape - 1))
-            self._kappa = 0
-        elif len(training_examples) == 1:
-            self._mu = training_examples[0]
-            self._kappa = self._default_kappa
-        else:
-            self._mu, self._kappa = estimate_von_moses_fisher(training_examples)
-
-        print(self._kappa)
-
-    def generate(self, size, mutation_factor=1):
-        """
-        Generate new data for current model parameters.
-        :param size the number of vectors to generate.
-        :param mutation_factor the larger the factor, the more mutation has the output
-        :return: an array of vectors similar to those used for training.
-        """
-        output = sample_von_moses_fisher(self._rng, self._shape, self._mu, self._kappa / mutation_factor, size)
-        return output
-
-
 class DimRedPreferenceModel:
     def __init__(self, dna_shape, default_std = 0.3):
         if len(dna_shape) != 1:
@@ -256,22 +218,6 @@ def sample_uniform_on_sphere(rng, dim, size):
     """
     return rng.normal(size=(size, dim))
 
-def estimate_von_moses_fisher(x):
-    """
-    Estimate parameters mu, kappa of von Moses-Fisher distribution in R**p space.
-    See https://en.wikipedia.org/wiki/Von_Mises%E2%80%93Fisher_distribution
-    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.717.1461&rep=rep1&type=pdf
-
-    :param x: a set of measurement in an array n x p.
-    :return: mu, kappa
-    """
-    p = x.shape[-1]
-    xm = np.mean(x, axis=0)
-    rm = np.linalg.norm(xm)
-    mu = xm / rm
-    kappa = rm * (p - rm*rm) / (1 - rm*rm)
-
-    return mu, kappa
 
 def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
     """
