@@ -86,6 +86,7 @@ class DimRedPreferenceModel:
         else:
             cov = np.maximum(self._dim_red.cov, self._default_cov) * mutation_factor
             output_r = self._rng.multivariate_normal(mean=np.zeros_like(cov), cov=np.diag(cov), size=size)
+            print(output_r)
             output = self._dim_red.restore_dim(output_r)
         return output
 

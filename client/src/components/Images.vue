@@ -10,13 +10,15 @@
           <tbody>
             <tr v-for="(image, index) in images" :key="index">
               <td>
-                <img :src="image.data">
-              </td>
-              <td v-if="image.liked">
-                <div class="fa fa-heart liked" @click="toggleLike(image)"/>
-              </td>
-              <td v-else>
-                <div class="fa fa-heart-o" @click="toggleLike(image)"/>
+                <div class="image-box">
+                  <img :src="image.data" class="image">
+                  <span v-if="image.liked">
+                    <div class="fa fa-heart liked image-button" @click="toggleLike(image)"></div>
+                  </span>
+                  <span v-else>
+                    <div class="fa fa-heart-o image-button" @click="toggleLike(image)"></div>
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -81,20 +83,33 @@ export default {
 </script>
 
 <style scoped>
-img {
+.image {
   width: 200px;
   height: 200px;
+}
+
+.image-box 
+{ 
+  position: relative; /* To help the image + text element to get along with the rest of the page*/ 
+} 
+
+.image-button 
+{ 
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  width: 100%; 
 }
 
 .fa {
   font-size: 50px;
   cursor: pointer;
   user-select: none;
-  color: gray;
+  color: red;
 }
 
 .fa:hover {
-  color: darkgray;
+  color: red;
 }
 
 .liked {
