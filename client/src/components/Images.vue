@@ -10,10 +10,10 @@
           <div v-for="(image, index) in images" :key="index" class="image-box">
             <img :src="image.data" class="image">
               <span v-if="image.liked">
-                <div class="fa fa-heart liked image-button" @click="toggleLike(image)"></div>
+                <b-icon icon="heart-fill" @click="toggleLike(image)" class="image-button"></b-icon>
               </span>
               <span v-else>
-                <div class="fa fa-heart-o image-button" @click="toggleLike(image)"></div>
+                <b-icon icon="heart" @click="toggleLike(image)" class="image-button"></b-icon>
               </span>
           </div>
         </div>
@@ -97,28 +97,20 @@ export default {
 
 .image-button 
 { 
+  width: 40px; 
+  height: 40px;
   position: absolute;
   bottom: 5px;
-  left: 5px;
+  left: 70px;
   width: 100%; 
-}
-
-.fa {
-  font-size: 50px;
-  cursor: pointer;
-  user-select: none;
   color: red;
 }
 
-.fa:hover {
+.image-button:hover {
   color: red;
 }
 
 .liked {
-  color: red;
-}
-
-.liked:hover {
   color: red;
 }
 
