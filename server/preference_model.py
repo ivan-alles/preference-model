@@ -317,6 +317,9 @@ class DimensionalityReduction:
         u, s, vt = np.linalg.svd(x)
         dim_r = len(s) - (np.cumsum(s) / np.sum(s) >= accuracy).sum() + 1
 
+        cov = s**2 / len(x)
+        self.cov = cov[:dim_r]
+
         self._vr = vt.T[:, :dim_r]
         self._vt_back = vt[:dim_r, :]
 

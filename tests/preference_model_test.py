@@ -1,7 +1,7 @@
 import numpy as np
 from server import preference_model
 import matplotlib.pyplot as plt
-
+from scipy.stats import special_ortho_group
 
 def test_spherical_to_cartesian_n_2():
     def compute(r, phi):
@@ -296,7 +296,7 @@ def test_estimate_von_moses_fisher():
 
 def test_reduce_dimensionality_plot():
     # Set to False to see the plot
-    if False:
+    if True:
         return
 
     # Simple pure 1d case
@@ -358,5 +358,34 @@ def test_reduce_dimensionality_plot():
     ax.set_ylim(-5, 5)
     ax.set_zlim(-.5, 2)
     plt.show()
+
+
+def test_reduce_dimensionality():
+    rng = np.random.RandomState(1)
+    dim = 3
+    mean = rng.uniform(-5, 5, dim)
+    cov = rng.uniform(.25, 4, dim)
+    cov[::-1].sort()  # Sort descending
+
+    n = 10000
+    x = rng.multivariate_normal(mean=mean, cov=np.diag(cov), size=n)
+    rot = special_ortho_group.rvs(dim)  # Random rotation
+    x = np.dot(x, rot.T)
+
+    # No dimensionality reduction - lossless recovery
+    dr = preference_model.DimensionalityReduction(x, 1)
+    assert np.allclose(cov, dr.cov, atol=0.05)
+    xr = dr.reduce_dim(x)
+    assert np.allclose(xr.mean(axis=0), np.zeros(dim), atol=0.001)
+    x1 = dr.restore_dim(xr)
+    assert np.allclose(x, x1, atol=0.001)
+
+    # Do some dimensionality reduction - imperfect recovery
+    dr = preference_model.DimensionalityReduction(x, 0.1)
+    assert np.allclose(cov[:len(dr.cov)], dr.cov, atol=0.05)
+    xr = dr.reduce_dim(x)
+    assert np.allclose(xr.mean(axis=0), np.zeros(dim), atol=0.001)
+    x1 = dr.restore_dim(xr)
+    assert x.shape == x1.shape
 
 
