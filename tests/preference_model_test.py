@@ -294,7 +294,7 @@ def test_estimate_von_moses_fisher():
     assert np.abs(est_kappa / set_kappa - 1) < 0.1
 
 
-def test_reduce_dimensionaliyt_plot():
+def test_reduce_dimensionality_plot():
     # Set to False to see the plot
     if False:
         return
