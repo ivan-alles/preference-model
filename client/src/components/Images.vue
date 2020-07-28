@@ -1,25 +1,31 @@
 <template>
-  <div class="container">
-    <div class="row">
-      <div class="col-sm-10">
-        <h1>Learn What You Like From Your Likes</h1>
-        <button @click="getImages()" type="button">More pictures</button>
-        <button @click="learn()" type="button">Learn from likes</button>
-        <button @click="resetLearning()" type="button">Reset learning</button>
-        <div class="flex-container">
-          <div v-for="(image, index) in images" :key="index" class="image-box">
-            <img :src="image.data" class="image">
-              <span v-if="image.liked">
-                <b-icon icon="heart-fill" @click="toggleLike(image)" class="image-button"></b-icon>
-              </span>
-              <span v-else>
-                <b-icon icon="heart" @click="toggleLike(image)" class="image-button"></b-icon>
-              </span>
-          </div>
-        </div>
+  <b-container>
+    <h1>Learn What You Like From Your Likes</h1>
+    <button @click="getImages()" type="button">More pictures</button>
+    <button @click="learn()" type="button">Learn from likes</button>
+    <button @click="resetLearning()" type="button">Reset learning</button>
+    <b-container>
+        <b-row>
+          <b-col sm="1">
+            <label>Variance</label>
+          </b-col>
+          <b-col sm="3">
+            <b-form-input v-model="variance_slider" type="range" min="0" max="8"></b-form-input>
+          </b-col>
+        </b-row>
+    </b-container>  
+    <div class="flex-container">
+      <div v-for="(image, index) in images" :key="index" class="image-box">
+        <img :src="image.data" class="image">
+          <span v-if="image.liked">
+            <b-icon icon="heart-fill" @click="toggleLike(image)" class="image-button"></b-icon>
+          </span>
+          <span v-else>
+            <b-icon icon="heart" @click="toggleLike(image)" class="image-button"></b-icon>
+          </span>
       </div>
     </div>
-  </div>
+  </b-container>
 </template>
 
 <script>
@@ -29,12 +35,16 @@ export default {
   data() {
     return {
       images: [],
+      variance_slider: 4,
     };
   },
 
   methods: {
     async getImages() {
-        const images = await this.engine.getImages();
+        const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
+        const variance = VARIANCES[this.variance_slider];
+        console.log(variance);
+        const images = await this.engine.getImages(variance);
         for(let image of images) {
           this.images.unshift({
             data: image.data,

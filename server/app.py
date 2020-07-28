@@ -18,7 +18,8 @@ DUMMY_IMAGES = False
 if not DUMMY_IMAGES:
     generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
 
-preference_model = preference_model.DimRedPreferenceModel(rng=rng)
+# preference_model = preference_model.DimRedPreferenceModel(rng=rng)
+preference_model = preference_model.SphericalCoordinatesPreferenceModel(rng=rng)
 
 def encode_image(image):
     """
@@ -49,7 +50,7 @@ def images():
     :return: an HTTP response containing a list of image objects.
     """
     num_images = 3
-    latents = preference_model.generate(num_images)
+    latents = preference_model.generate(num_images, float(flask.request.args['variance']))
     if DUMMY_IMAGES:
         images = np.broadcast_to(rng.uniform(0, 255, (num_images, 1, 1, 3)).astype(np.uint8),
                                  (num_images, 256, 256, 3))

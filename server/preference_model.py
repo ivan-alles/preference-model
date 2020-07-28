@@ -237,7 +237,7 @@ class DimensionalityReduction:
         sum_s = np.sum(s)
         epsilon = 1e-5
         if sum_s > epsilon:
-            dim_r = len(s) - (np.cumsum(s) / sum_s  >= accuracy).sum() + 1
+            dim_r = len(s) - (np.cumsum(s) / sum_s >= accuracy).sum() + 1
         else:
             dim_r = 1
 
