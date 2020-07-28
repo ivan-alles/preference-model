@@ -300,25 +300,50 @@ def test_reduce_dimensionaliyt_plot():
         return
 
     # Simple pure 1d case
-    x_1d_1 = np.array([
+    x_1d_1 = [
         [-1, 1, 1],
-        [ 1, 1.2, 1]])
+        [ 1, 1.2, 1]]
 
     # Pure 1d case with many points
-    x_1d_2 = np.array([
+    x_1d_2 = [
         [-1, 1, 1],
         [ 0, 1.1, 1],
         [ 1, 1.2, 1],
-        [ 2, 1.3, 1]])
+        [ 2, 1.3, 1]]
 
     # 1d case with some 2d variance
-    x_1d_3 = np.array([
+    x_1d_3 = [
         [-1, 1, 0.9],
         [ 0, 1.1, 1.1],
         [ 1, 1.2, 0.9],
-        [ 2, 1.3, 1.1]])
+        [ 2, 1.3, 1.1]]
 
-    x = x_1d_1
+    # Simple pure 2d case
+    x_2d_1 = [
+        [-1, 0, 1],
+        [-1, 1, 1],
+        [ 1, 1, 1.2]
+    ]
+
+    # Pure 2d case with more points
+    x_2d_2 = [
+        [-1, 0, 1],
+        [-1, 0.5, 1],
+        [-1, 1, 1],
+        [ 0, 1, 1.1],
+        [ 1, 1, 1.2]
+    ]
+
+    # 2d case with variance
+    x_2d_3 = [
+        [-1, 0, 1.05],
+        [-1, 0.5, 0.95],
+        [-1, 1, 1.05],
+        [ 0, 1, 1.05],
+        [ 1, 1, 1.25]
+    ]
+
+    x = np.array(x_2d_3, dtype=np.float64)
     dr = preference_model.DimensionalityReduction(x)
 
     xr = dr.reduce_dim(x)
@@ -331,5 +356,7 @@ def test_reduce_dimensionaliyt_plot():
     ax.scatter(*np.rollaxis(x1, 1, 0), c='#a00000', marker='+')
     ax.set_xlim(-5, 5)
     ax.set_ylim(-5, 5)
-    ax.set_zlim(-1, 3)
+    ax.set_zlim(-.5, 2)
     plt.show()
+
+
