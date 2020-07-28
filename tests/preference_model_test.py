@@ -294,3 +294,42 @@ def test_estimate_von_moses_fisher():
     assert np.abs(est_kappa / set_kappa - 1) < 0.1
 
 
+def test_reduce_dimensionaliyt_plot():
+    # Set to False to see the plot
+    if False:
+        return
+
+    # Simple pure 1d case
+    x_1d_1 = np.array([
+        [-1, 1, 1],
+        [ 1, 1.2, 1]])
+
+    # Pure 1d case with many points
+    x_1d_2 = np.array([
+        [-1, 1, 1],
+        [ 0, 1.1, 1],
+        [ 1, 1.2, 1],
+        [ 2, 1.3, 1]])
+
+    # 1d case with some 2d variance
+    x_1d_3 = np.array([
+        [-1, 1, 0.9],
+        [ 0, 1.1, 1.1],
+        [ 1, 1.2, 0.9],
+        [ 2, 1.3, 1.1]])
+
+    x = x_1d_1
+    dr = preference_model.DimensionalityReduction(x)
+
+    xr = dr.reduce_dim(x)
+    x1 = dr.restore_dim(xr)
+
+    xr = np.concatenate((xr, np.zeros((xr.shape[0], 3 - xr.shape[1]))), axis=1)
+    fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
+    ax.scatter(*np.rollaxis(x, 1, 0), c='#00a000')
+    ax.scatter(*np.rollaxis(xr, 1, 0), c='#a00000')
+    ax.scatter(*np.rollaxis(x1, 1, 0), c='#a00000', marker='+')
+    ax.set_xlim(-5, 5)
+    ax.set_ylim(-5, 5)
+    ax.set_zlim(-1, 3)
+    plt.show()

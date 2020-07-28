@@ -89,6 +89,72 @@ class VMFPreferenceModel:
         return output
 
 
+class DimRedPreferenceModel:
+    def __init__(self, dna_shape, default_std = 0.3):
+        if len(dna_shape) != 1:
+            raise ValueError("DNA must be a vector")
+        super().__init__(dna_shape)
+        self._default_std = default_std
+        self._row_space_dim = dna_shape[0]
+        # Init mean, std
+        self.train([])
+
+    @property
+    def mean(self):
+        return self._mean
+
+    @property
+    def std(self):
+        return self._std
+
+    @property
+    def basis(self):
+        return self._basis
+
+    def get_scaled_std(self):
+        std = np.copy(self._std)
+        std[self._row_space_dim:] = self._default_std
+        std *= self.std_scale
+        return std
+
+    def train(self, elite_dna, weights=None):
+        if len(elite_dna) == 0:
+            # Reset mean, std
+            self._mean = np.zeros(self._dna_shape, dtype=np.float32)
+            self._std = np.full(self._dna_shape, 1, dtype=np.float32)
+            self._basis = np.identity(self._dna_shape[0])
+            return
+
+        m = elite_dna.shape[0]
+        n = elite_dna.shape[1]
+        if n != self._dna_shape[0]:
+            raise ValueError("Wrong shape of elite_dna")
+        self._mean = elite_dna.mean(axis=0)
+        elite_c = elite_dna - self._mean.reshape(1, -1)
+        u, s, vt = np.linalg.svd(elite_c)
+        singular_value_e = 1e-5
+        self._row_space_dim = (s > singular_value_e).sum()
+        self._basis = vt
+        elite_b = np.dot(elite_c, self._basis.T)
+        self._std = elite_b.std(axis=0)
+
+
+
+    def generate(self, count):
+        """
+        Generate new DNAs with current model parameters.
+        :return: a vector of DNAs.
+        """
+        std = self.get_scaled_std()
+
+        cov = np.diag(np.array(std ** 2))
+        dna_b = self._rng.multivariate_normal(mean=np.zeros(self._dna_shape), cov=cov, size=count, check_valid="ignore")
+        dna_c = np.dot(dna_b, self._basis)
+        dna = dna_c + self._mean.reshape(1, -1)
+        dna = dna.astype(np.float32)
+
+        return dna
+
 def spherical_to_cartesian_n(r, phi):
     """
     Convert spherical to cartesian coordinates in n dimensions.
@@ -241,4 +307,27 @@ def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
             result.append(x)
 
     return np.array(result)
+
+
+class DimensionalityReduction:
+    def __init__(self, x, accuracy=0.9):
+        x = np.array(x)
+        self._mean = x.mean(axis=0)
+        x -= self._mean
+        u, s, vt = np.linalg.svd(x)
+        dim_r = len(s) - (np.cumsum(s) / np.sum(s) >= accuracy).sum() + 1
+
+        self._vr = vt.T[:, :dim_r]
+        self._vt_back = vt[:dim_r, :]
+
+    def reduce_dim(self, x):
+        x = np.array(x) - self._mean
+        xr = np.dot(x, self._vr)
+        return xr
+
+    def restore_dim(self, xr):
+        xr = np.array(xr)
+        x = np.dot(xr, self._vt_back)
+        x += self._mean
+        return x
 
