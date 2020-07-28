@@ -369,7 +369,7 @@ def test_reduce_dimensionality():
         cov = rng.uniform(.25, 4, dim)
         cov[::-1].sort()  # Sort descending
 
-        n = 10000
+        n = 5000
         x = rng.multivariate_normal(mean=mean, cov=np.diag(cov), size=n)
         rot = special_ortho_group.rvs(dim)  # Random rotation
         x = np.dot(x, rot.T)
