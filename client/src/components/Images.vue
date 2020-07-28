@@ -6,23 +6,17 @@
         <button @click="getImages()" type="button">More pictures</button>
         <button @click="learn()" type="button">Learn from likes</button>
         <button @click="resetLearning()" type="button">Reset learning</button>
-        <table class="table table-hover">
-          <tbody>
-            <tr v-for="(image, index) in images" :key="index">
-              <td>
-                <div class="image-box">
-                  <img :src="image.data" class="image">
-                  <span v-if="image.liked">
-                    <div class="fa fa-heart liked image-button" @click="toggleLike(image)"></div>
-                  </span>
-                  <span v-else>
-                    <div class="fa fa-heart-o image-button" @click="toggleLike(image)"></div>
-                  </span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="flex-container">
+          <div v-for="(image, index) in images" :key="index" class="image-box">
+            <img :src="image.data" class="image">
+              <span v-if="image.liked">
+                <div class="fa fa-heart liked image-button" @click="toggleLike(image)"></div>
+              </span>
+              <span v-else>
+                <div class="fa fa-heart-o image-button" @click="toggleLike(image)"></div>
+              </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -83,6 +77,12 @@ export default {
 </script>
 
 <style scoped>
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .image {
   width: 200px;
   height: 200px;
@@ -90,7 +90,9 @@ export default {
 
 .image-box 
 { 
-  position: relative; /* To help the image + text element to get along with the rest of the page*/ 
+  margin: 5px;
+  /* For like button positioning to work. */
+  position: relative; 
 } 
 
 .image-button 
