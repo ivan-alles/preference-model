@@ -3,7 +3,7 @@
     <h1>Learn What You Like From Your Likes</h1>
     <b-button @click="learnFromLikes()" :disabled="disableLearnFromLikes" variant="primary">Learn from likes</b-button>
     <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
-    <b-button @click="getImages()" variant="secondary">More pictures</b-button>
+    <b-button @click="togglePollImages()" variant="secondary">Toogle pause pictures</b-button>
     <b-button @click="deleteAllImages()" variant="secondary" >Delete all pictures</b-button>
     <b-container>
         <b-row>
@@ -37,6 +37,8 @@ export default {
     return {
       images: [],
       varianceSlider: 4,
+      pollImages: true,
+      pollImagesIntervalId: null,
     };
   },
   computed: {
@@ -52,10 +54,14 @@ export default {
   },  
 
   methods: {
+    togglePollImages() {
+      this.pollImages = !this.pollImages;
+    },
+
     async getImages() {
         const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
         const variance = VARIANCES[this.varianceSlider];
-        const images = await this.engine.getImages(variance);
+        const images = await this.engine.getImages(1, variance);
         for(let image of images) {
           this.images.unshift({
             data: image.data,
@@ -99,7 +105,15 @@ export default {
   created() {
     this.images = [];
     this.engine = new Engine();
-    this.getImages();
+    // this.getImages();
+    this.pollImagesIntervalId = setInterval(() => {
+        if(this.pollImages) {
+          this.getImages()
+        }
+      }, 1000)
+  },
+  beforeDestroy () {
+    clearInterval(this.pollImagesIntervalId)
   },
 };
 

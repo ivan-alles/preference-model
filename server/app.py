@@ -49,16 +49,17 @@ def images():
     Generate the next portion of images based on current settings.
     :return: an HTTP response containing a list of image objects.
     """
-    num_images = 3
-    latents = preference_model.generate(num_images, float(flask.request.args['variance']))
+    count = int(flask.request.args['count'])
+    variance = float(flask.request.args['variance'])
+    latents = preference_model.generate(count, variance)
     if DUMMY_IMAGES:
-        images = np.broadcast_to(rng.uniform(0, 255, (num_images, 1, 1, 3)).astype(np.uint8),
-                                 (num_images, 256, 256, 3))
+        images = np.broadcast_to(rng.uniform(0, 255, (count, 1, 1, 3)).astype(np.uint8),
+                                 (count, 256, 256, 3))
     else:
         images = generator.generate(latents)
 
     image_objects = []
-    for i in range(num_images):
+    for i in range(len(images)):
         image = images[i]
         image_object = {
             'data': encode_image(image),
