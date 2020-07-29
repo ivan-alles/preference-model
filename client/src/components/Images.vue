@@ -3,8 +3,6 @@
     <h1>Learn What You Like From Your Likes</h1>
     <b-button @click="learnFromLikes()" :disabled="disableLearnFromLikes" variant="primary">Learn from likes</b-button>
     <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
-    <b-button v-if="pollImages" @click="togglePollImages()" variant="secondary">Pause pictures</b-button>
-    <b-button v-else @click="togglePollImages()" variant="secondary">More pictures</b-button>
     <b-button @click="deleteAllImages()" variant="secondary" >Delete all pictures</b-button>
     <b-container>
         <b-row>
@@ -38,7 +36,6 @@ export default {
     return {
       images: [],
       varianceSlider: 4,
-      pollImages: true,
       pollImagesIntervalId: null,
     };
   },
@@ -55,16 +52,16 @@ export default {
   },  
 
   methods: {
-    togglePollImages() {
-      this.pollImages = !this.pollImages;
-    },
+    async getImages(count=1) {
+        if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
+          return;
+        }
 
-    async getImages() {
         const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
         const variance = VARIANCES[this.varianceSlider];
-        const images = await this.engine.getImages(1, variance);
+        const images = await this.engine.getImages(count, variance);
         for(let image of images) {
-          this.images.unshift({
+          this.images.push({
             data: image.data,
             latents: image.latents,
             liked: false,
@@ -103,16 +100,15 @@ export default {
       image.liked = !image.liked;
     },
   },
-  created() {
+  mounted() {
     this.images = [];
     this.engine = new Engine();
-    // this.getImages();
+    this.getImages(50);
     this.pollImagesIntervalId = setInterval(() => {
-        if(this.pollImages) {
-          this.getImages()
-        }
+        this.getImages();
       }, 1000)
   },
+
   beforeDestroy () {
     clearInterval(this.pollImagesIntervalId)
   },
