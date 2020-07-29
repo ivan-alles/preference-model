@@ -11,7 +11,7 @@
             <label>Variance</label>
           </b-col>
           <b-col sm="3">
-            <b-form-input v-model="variance_slider" type="range" min="0" max="8"></b-form-input>
+            <b-form-input v-model="varianceSlider" type="range" min="0" max="8"></b-form-input>
           </b-col>
         </b-row>
     </b-container>  
@@ -36,8 +36,7 @@ export default {
   data() {
     return {
       images: [],
-      variance_slider: 4,
-      enable111: false,
+      varianceSlider: 4,
     };
   },
   computed: {
@@ -55,7 +54,7 @@ export default {
   methods: {
     async getImages() {
         const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
-        const variance = VARIANCES[this.variance_slider];
+        const variance = VARIANCES[this.varianceSlider];
         const images = await this.engine.getImages(variance);
         for(let image of images) {
           this.images.unshift({
