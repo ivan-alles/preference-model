@@ -1,9 +1,10 @@
 <template>
   <b-container>
     <h1>Learn What You Like From Your Likes</h1>
+    <button @click="learnFromLikes()" type="button">Learn from likes</button>
+    <button @click="forgetLearning()" type="button">Forget learning</button>
     <button @click="getImages()" type="button">More pictures</button>
-    <button @click="learn()" type="button">Learn from likes</button>
-    <button @click="resetLearning()" type="button">Reset learning</button>
+    <button @click="deleteAllImages()" type="button">Delete all pictures</button>
     <b-container>
         <b-row>
           <b-col sm="1">
@@ -43,7 +44,6 @@ export default {
     async getImages() {
         const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
         const variance = VARIANCES[this.variance_slider];
-        console.log(variance);
         const images = await this.engine.getImages(variance);
         for(let image of images) {
           this.images.unshift({
@@ -53,25 +53,33 @@ export default {
           });
         }
     },
-    async learn() {
+    async learnFromLikes() {
       const likes = [];
+      const liked_latents = [];
       for(let image of this.images) {
         if (image.liked) {
-          likes.push(image.latents);
+          likes.push(image);
+          liked_latents.push(image.latents);
           image.liked = false;
         }
       }
-      if (likes.length === 0) {
+      if (liked_latents.length === 0) {
         return;
       }
-      await this.engine.learn(likes);
+      await this.engine.learn(liked_latents);
       await this.getImages();
+      for(let image of likes) {
+          image.liked = false;
+      }      
     },
-    async resetLearning() {
+    async forgetLearning() {
         const likes = [];
         await this.engine.learn(likes);
         await this.getImages();
     },
+    deleteAllImages() {
+        this.images = [];
+    },    
     toggleLike(image) {
       this.image = image;
       image.liked = !image.liked;
