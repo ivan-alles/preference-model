@@ -1,20 +1,24 @@
 <template>
   <b-container>
-    <h1>Learn What You Like From Your Likes</h1>
-    <b-button @click="learnFromLikes()" :disabled="disableLearnFromLikes" variant="primary">Learn from likes</b-button>
-    <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
-    <b-button @click="deleteAllImages()" variant="secondary" >Delete all pictures</b-button>
-    <b-container>
-        <b-row>
-          <b-col sm="1">
-            <label>Variance</label>
-          </b-col>
-          <b-col sm="3">
-            <b-form-input v-model="varianceSlider" type="range" min="0" max="8"></b-form-input>
-          </b-col>
-        </b-row>
-    </b-container>  
-    <div class="flex-container">
+    <div>
+      <h1>Learn What You Like From Your Likes</h1>
+    </div>
+    <div id="stickyHeader">
+      <b-button @click="learnFromLikes()" :disabled="disableLearnFromLikes" variant="primary">Learn from likes</b-button>
+      <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
+      <b-button @click="deleteAllImages()" variant="secondary" >Delete all pictures</b-button>
+      <b-container>
+          <b-row>
+            <b-col sm="1">
+              <label>Variance</label>
+            </b-col>
+            <b-col sm="3">
+              <b-form-input v-model="varianceSlider" type="range" min="0" max="8"></b-form-input>
+            </b-col>
+          </b-row>
+      </b-container>  
+    </div>
+    <div class="flex-container content">
       <div v-for="(image, index) in images" :key="index" class="image-box">
         <img :src="image.data" class="image">
           <span v-if="image.liked">
@@ -103,7 +107,7 @@ export default {
   mounted() {
     this.images = [];
     this.engine = new Engine();
-    this.getImages(50);
+    this.getImages();
     this.pollImagesIntervalId = setInterval(() => {
         this.getImages();
       }, 1000)
@@ -114,9 +118,36 @@ export default {
   },
 };
 
+window.onscroll = function() {myFunction()};
+
+function myFunction() {
+  var header = document.getElementById("stickyHeader");
+  var sticky = header.offsetTop;
+
+  if (window.pageYOffset > sticky) {
+    header.classList.add("sticky");
+  } else {
+    header.classList.remove("sticky");
+  }
+}
+
 </script>
 
 <style scoped>
+
+.sticky {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+  /* A counter-measure for transparent background. TODO(ia): why the BG is transparent? */
+  background-color: #ffffff;
+}
+
+.sticky + .content {
+  margin-top: 130px;
+  z-index: 10;
+}
 
 .flex-container {
   display: flex;
