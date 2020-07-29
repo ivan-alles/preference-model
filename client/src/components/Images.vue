@@ -1,10 +1,10 @@
 <template>
   <b-container>
     <h1>Learn What You Like From Your Likes</h1>
-    <button @click="learnFromLikes()" type="button">Learn from likes</button>
-    <button @click="forgetLearning()" type="button">Forget learning</button>
-    <button @click="getImages()" type="button">More pictures</button>
-    <button @click="deleteAllImages()" type="button">Delete all pictures</button>
+    <b-button @click="learnFromLikes()" variant="primary">Learn from likes</b-button>
+    <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
+    <b-button @click="getImages()" variant="secondary">More pictures</b-button>
+    <b-button @click="deleteAllImages()" variant="secondary">Delete all pictures</b-button>
     <b-container>
         <b-row>
           <b-col sm="1">
