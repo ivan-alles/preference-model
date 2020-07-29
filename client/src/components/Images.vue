@@ -1,10 +1,10 @@
 <template>
   <b-container>
     <h1>Learn What You Like From Your Likes</h1>
-    <b-button @click="learnFromLikes()" variant="primary">Learn from likes</b-button>
+    <b-button @click="learnFromLikes()" :disabled="disableLearnFromLikes" variant="primary">Learn from likes</b-button>
     <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
     <b-button @click="getImages()" variant="secondary">More pictures</b-button>
-    <b-button @click="deleteAllImages()" variant="secondary">Delete all pictures</b-button>
+    <b-button @click="deleteAllImages()" variant="secondary" >Delete all pictures</b-button>
     <b-container>
         <b-row>
           <b-col sm="1">
@@ -37,8 +37,20 @@ export default {
     return {
       images: [],
       variance_slider: 4,
+      enable111: false,
     };
   },
+  computed: {
+    disableLearnFromLikes: function () {
+        let num_likes = 0;
+        for(let image of this.images) {
+        if (image.liked) {
+          num_likes ++;
+        }
+      }
+      return num_likes == 0;
+    }
+  },  
 
   methods: {
     async getImages() {
