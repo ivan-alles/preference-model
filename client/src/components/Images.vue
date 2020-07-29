@@ -30,11 +30,14 @@
             </span>
         </div>
         <div v-else-if="image.kind === cellKind.LIKES">
-          Likes
+          Learning from
           <div v-for="(picture, index) in image.pictures" :key="index" >
             <img :src="picture" class="like-picture">
           </div>
-        </div>        
+        </div>   
+        <div v-else-if="image.kind === cellKind.RANDOM">
+          Random
+        </div>                
       </div>
     </div>
   </b-container>
@@ -115,10 +118,13 @@ export default {
       await this.getImages();
     },
     async forgetLearning() {
-        const likes = [];
-        await this.engine.learn(likes);
+        this.images.push({
+          kind: cellKind.RANDOM
+        });
+        await this.engine.learn([]);
         await this.getImages();
     },
+
     deleteAllImages() {
         this.images = [];
     },    
@@ -128,9 +134,11 @@ export default {
     },
   },
   mounted() {
-    this.images = [];
     this.engine = new Engine();
-    this.getImages();
+    this.images = [];
+    this.images.push({
+      kind: cellKind.RANDOM
+    });    
     this.pollImagesIntervalId = setInterval(() => {
         this.getImages();
       }, 1000)
