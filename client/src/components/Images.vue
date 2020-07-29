@@ -31,7 +31,7 @@
         </div>
         <div v-else-if="image.kind === cellKind.LIKES">
           Learning from
-          <div v-for="(picture, index) in image.pictures" :key="index" >
+          <div v-for="(picture, index) in image.pictures" :key="index" class="like-picture-div">
             <img :src="picture" class="like-picture">
           </div>
         </div>   
@@ -136,9 +136,10 @@ export default {
   mounted() {
     this.engine = new Engine();
     this.images = [];
-    this.images.push({
-      kind: cellKind.RANDOM
-    });    
+    // TODO(ia): this is not always true, as the server engine has its state.
+    // this.images.push({
+    //   kind: cellKind.RANDOM
+    // });    
     this.pollImagesIntervalId = setInterval(() => {
         this.getImages();
       }, 1000)
@@ -200,10 +201,12 @@ function myFunction() {
     object-fit: contain;
 }
 
+.like-picture-div {
+    display: table-cell;
+}
+
 .like-picture {
-    height: 40px;
-    width: 40px; 
-    object-fit: contain;
+    max-width: 100%;
 }
 
 .image-button 
