@@ -62,7 +62,7 @@ def images():
     for i in range(len(images)):
         image = images[i]
         image_object = {
-            'data': encode_image(image),
+            'picture': encode_image(image),
             'latents': latents[i].tolist()  # rng.randn(512).tolist()
         }
         image_objects.append(image_object)

@@ -4,9 +4,9 @@
       <h1>Learn What You Like From Your Likes</h1>
     </div>
     <div id="stickyHeader">
-      <b-button @click="learnFromLikes()" :disabled="disableLearnFromLikes" variant="primary">Learn from likes</b-button>
+      <b-button @click="learnFromLikes()" :disabled="findLikes().length == 0" variant="primary">Learn from likes</b-button>
       <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
-      <b-button @click="deleteAllImages()" variant="secondary" >Delete all pictures</b-button>
+      <b-button @click="deleteAllPictures()" variant="secondary" >Delete all pictures</b-button>
       <b-container>
           <b-row>
             <b-col sm="1">
@@ -19,23 +19,23 @@
       </b-container>  
     </div>
     <div class="flex-container content">
-      <div v-for="(image, index) in images" :key="index" class="image-box">
-        <div v-if="image.kind === cellKind.IMAGE" >
-          <img :src="image.data" class="picture">
-            <span v-if="image.liked">
-              <b-icon icon="heart-fill" @click="toggleLike(image)" class="image-button"></b-icon>
+      <div v-for="(cell, index) in cells" :key="index" class="cell">
+        <div v-if="cell.kind === cellKind.PICTURE" >
+          <img :src="cell.picture" class="picture">
+            <span v-if="cell.liked">
+              <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button"></b-icon>
             </span>
             <span v-else>
-              <b-icon icon="heart" @click="toggleLike(image)" class="image-button"></b-icon>
+              <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
             </span>
         </div>
-        <div v-else-if="image.kind === cellKind.LIKES">
+        <div v-else-if="cell.kind === cellKind.LIKES">
           Learning from
-          <div v-for="(picture, index) in image.pictures" :key="index" class="like-picture-div">
-            <img :src="picture" class="like-picture">
+          <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-div">
+            <img :src="picture" class="likes-picture">
           </div>
         </div>   
-        <div v-else-if="image.kind === cellKind.RANDOM">
+        <div v-else-if="cell.kind === cellKind.RANDOM">
           Random
         </div>                
       </div>
@@ -47,7 +47,7 @@
 import { Engine } from '@/server-engine'
 
 const cellKind = {
-    IMAGE: 'image',
+    PICTURE: 'picture',
     LIKES: 'likes',
     RANDOM: 'random'
 }
@@ -55,98 +55,94 @@ const cellKind = {
 export default {
   data() {
     return {
-      images: [],
+      cells: [],
       varianceSlider: 4,
-      pollImagesIntervalId: null,
+      pollPicturesIntervalId: null,
       cellKind, // Make this enum accessible in Vue code
     };
   },
   computed: {
-    disableLearnFromLikes: function () {
-        let num_likes = 0;
-        for(let image of this.images) {
-        if (image.liked) {
-          num_likes ++;
-        }
-      }
-      return num_likes == 0;
-    }
   },  
 
   methods: {
-    async getImages(count=1) {
+    findLikes() {
+      let likes = this.cells.filter(cell => cell.kind === cellKind.PICTURE && cell.liked);
+      return likes;
+    },
+
+    async getPictures(count=1) {
         if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
           return;
         }
-
         const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
         const variance = VARIANCES[this.varianceSlider];
-        const images = await this.engine.getImages(count, variance);
-        for(let image of images) {
-          this.images.push({
-            kind: cellKind.IMAGE,
-            data: image.data,
-            latents: image.latents,
+        const enginePictures = await this.engine.getPictures(count, variance);
+        for(let enginePicture of enginePictures) {
+          this.cells.push({
+            kind: cellKind.PICTURE,
+            picture: enginePicture.picture,
+            latents: enginePicture.latents,
             liked: false,
           });
         }
     },
+
     async learnFromLikes() {
-      const likes = [];
-      for(let image of this.images) {
-        if (image.kind === cellKind.IMAGE && image.liked) {
-          likes.push(image);
-        }
-      }
+      const likes = this.findLikes();
+
       if (likes.length === 0) {
         return;
       }
+
       const liked_latents = [];
       const liked_pictures = [];
 
       for(let like of likes) {
           like.liked = false;
           liked_latents.push(like.latents);
-          liked_pictures.push(like.data)
+          liked_pictures.push(like.picture)
       }
-      this.images.push({
+
+      this.cells.push({
           kind: cellKind.LIKES,
           pictures: liked_pictures
       });
 
       await this.engine.learn(liked_latents);
-      await this.getImages();
+      await this.getPictures();
     },
     async forgetLearning() {
-        this.images.push({
+        this.cells.push({
           kind: cellKind.RANDOM
         });
         await this.engine.learn([]);
-        await this.getImages();
+        await this.getPictures();
     },
 
-    deleteAllImages() {
-        this.images = [];
+    deleteAllPictures() {
+        this.cells = [];
     },    
-    toggleLike(image) {
-      this.image = image;
-      image.liked = !image.liked;
+    toggleLike(cell) {
+      cell.liked = !cell.liked;
     },
   },
-  mounted() {
+  created() {
     this.engine = new Engine();
-    this.images = [];
+    this.cells = [];
     // TODO(ia): this is not always true, as the server engine has its state.
-    // this.images.push({
+    // this.cells.push({
     //   kind: cellKind.RANDOM
     // });    
-    this.pollImagesIntervalId = setInterval(() => {
-        this.getImages();
+  },
+
+  mounted() {
+    this.pollPicturesIntervalId = setInterval(() => {
+        this.getPictures();
       }, 1000)
   },
 
   beforeDestroy () {
-    clearInterval(this.pollImagesIntervalId)
+    clearInterval(this.pollPicturesIntervalId)
   },
 };
 
@@ -186,7 +182,7 @@ function myFunction() {
   flex-wrap: wrap;
 }
 
-.image-box 
+.cell 
 { 
   width: 200px;
   height: 200px;
@@ -201,15 +197,15 @@ function myFunction() {
     object-fit: contain;
 }
 
-.like-picture-div {
+.likes-picture-div {
     display: table-cell;
 }
 
-.like-picture {
+.likes-picture {
     max-width: 100%;
 }
 
-.image-button 
+.like-button 
 { 
   width: 40px; 
   height: 40px;
@@ -220,7 +216,7 @@ function myFunction() {
   color: red;
 }
 
-.image-button:hover {
+.like-button:hover {
   color: red;
 }
 
