@@ -88,10 +88,16 @@ class LinearPreferenceModel:
             output = np.tile(self._training_examples, (size, 1))
         else:
             # TODO(ia): support size > 1
+            assert size == 1
             mean = self._training_examples.mean(axis=0)
             tc = self._training_examples - mean
-            a = self._rng.standard_normal(size=(tc.shape[0], 1))
-            output = mean + np.sum(tc * a, axis=0)
+            assert len(tc) == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
+            # TODO(ia): now there is a problem if a > 2 or a < -1, it does not really change the pictures visually
+            # and therefore it is unclear how to implement large mutation factors.
+            a = self._rng.standard_normal(size=1) + 0.5
+            print(a)
+            output = tc[0] * a * mutation_factor + tc[1] * (1-a) * mutation_factor
+            output += mean
             output = output.reshape(1, self._shape)
         return output
 
