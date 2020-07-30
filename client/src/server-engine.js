@@ -28,8 +28,6 @@ class Engine {
 
     async learn(likes) {
       this.isRandom = likes.length === 0;
-      console.log('learn');
-      console.log(this.isRandom);
       await axios.post(LEARN_URL, likes);
     }
 
