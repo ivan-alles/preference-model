@@ -13,7 +13,7 @@
               <label>Variance</label>
             </b-col>
             <b-col sm="3">
-              <b-form-input v-model="varianceSlider" type="range" min="0" max="8"></b-form-input>
+              <b-form-input v-model="varianceSlider" type="range" min="0" max="8" :disabled="isRandom()"></b-form-input>
             </b-col>
           </b-row>
       </b-container>  
@@ -36,7 +36,7 @@
           </div>
         </div>   
         <div v-else-if="cell.kind === cellKind.RANDOM">
-          Random
+          Random pictures
         </div>                
       </div>
     </div>
@@ -65,6 +65,11 @@ export default {
   },  
 
   methods: {
+    isRandom: function() {
+      console.log(this.engine.isRandom);
+      return this.engine.isRandom;
+    },
+
     findLikes() {
       let likes = this.cells.filter(cell => cell.kind === cellKind.PICTURE && cell.liked);
       return likes;
@@ -129,10 +134,9 @@ export default {
   created() {
     this.engine = new Engine();
     this.cells = [];
-    // TODO(ia): this is not always true, as the server engine has its state.
-    // this.cells.push({
-    //   kind: cellKind.RANDOM
-    // });    
+    this.cells.push({
+      kind: cellKind.RANDOM
+    });    
   },
 
   mounted() {

@@ -1,9 +1,22 @@
 import axios from 'axios';
 
+const PICTURES_URL = 'http://localhost:5000/images';
+const LEARN_URL = 'http://localhost:5000/learn';
+
 class Engine {
+    constructor () {
+      this.firstCall = true;
+      this.isRandom = true;
+    }
+
     async getPictures(count, variance) {
-      const path = 'http://localhost:5000/images';
-      let result = await axios.get(path, {
+      if(this.firstCall) {
+        this.firstCall = false;
+        // reset to random pictures.
+        await axios.post(LEARN_URL, []);
+      }
+
+      let result = await axios.get(PICTURES_URL, {
           params: {
               count: count,
               variance: variance
@@ -14,9 +27,12 @@ class Engine {
     }
 
     async learn(likes) {
-      const path = 'http://localhost:5000/learn';
-      await axios.post(path, likes);
+      this.isRandom = likes.length === 0;
+      console.log('learn');
+      console.log(this.isRandom);
+      await axios.post(LEARN_URL, likes);
     }
+
 }
 
 

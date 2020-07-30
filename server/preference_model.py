@@ -15,6 +15,10 @@ class SphericalCoordinatesPreferenceModel:
         self._mean = None
         self._std = None
 
+    @property
+    def is_random(self):
+        return self._std is None
+
     def train(self, training_examples):
         if len(training_examples) == 0:
             # Reset the trainable parameters and use a uniform distribution.
@@ -39,7 +43,7 @@ class SphericalCoordinatesPreferenceModel:
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
-        if self._std is None:
+        if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
             std = self._std * mutation_factor
@@ -64,6 +68,10 @@ class DimRedPreferenceModel:
         # Learnable parameters are inside the DimensionalityReduciton instance.
         self._dim_red = None
 
+    @property
+    def is_random(self):
+        return self._dim_red is None
+
     def train(self, training_examples):
         if len(training_examples) == 0:
             # Reset the trainable parameters and use a uniform distribution.
@@ -81,7 +89,7 @@ class DimRedPreferenceModel:
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
-        if self._dim_red is None:
+        if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
             cov = np.maximum(self._dim_red.cov, self._default_cov) * mutation_factor
