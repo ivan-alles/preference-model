@@ -54,6 +54,47 @@ class SphericalCoordinatesPreferenceModel:
             output = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
         return output.astype(dtype=np.float32)
 
+class LinearPreferenceModel:
+    def __init__(self, shape=512, default_cov=0.01, rng=None):
+        """
+        Create model object.
+        :param shape: shape of the vector to learn the preference from.
+        :param default_std: the value of standard deviation to use if we learn from only one training example.
+        """
+        self._rng = rng or np.random.RandomState(0)
+        self._shape = shape
+        self._default_cov = default_cov
+        # Learnable parameters are inside the DimensionalityReduciton instance.
+        self._training_examples = []
+
+    @property
+    def is_random(self):
+        return len(self._training_examples) == 0
+
+    def train(self, training_examples):
+        # Todo(ia): division by zero?
+        self._training_examples = training_examples / np.linalg.norm(training_examples, axis=1, keepdims=True)
+
+    def generate(self, size, mutation_factor=1):
+        """
+        Generate new data for current model parameters.
+        :param size the number of vectors to generate.
+        :param mutation_factor the larger the factor, the more mutation has the output
+        :return: an array of vectors similar to those used for training.
+        """
+        if self.is_random:
+            output = sample_uniform_on_sphere(self._rng, self._shape, size)
+        elif len(self._training_examples) == 1:
+            output = np.tile(self._training_examples, (size, 1))
+        else:
+            # TODO(ia): support size > 1
+            mean = self._training_examples.mean(axis=0)
+            tc = self._training_examples - mean
+            a = self._rng.standard_normal(size=(tc.shape[0], 1))
+            output = mean + np.sum(tc * a, axis=0)
+            output = output.reshape(1, self._shape)
+        return output
+
 
 class DimRedPreferenceModel:
     def __init__(self, shape=512, default_cov=0.01, rng=None):
