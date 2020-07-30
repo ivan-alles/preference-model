@@ -104,16 +104,15 @@ class SphericalCoordinates2PreferenceModel:
             # [0, pi] -> [-pi, pi] for all but the last
             phi[:, :-1] = 2 * phi[:, :-1] - np.pi
 
-            if True:
+            if False:
                 # Simple test for n = 2
                 assert n == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
                 a = self._rng.standard_normal(size=1) * mutation_factor + 0.5
                 a = np.array([a, 1-a]).reshape(-1, 1)
             else:
-                raise NotImplementedError()
+                a = self._rng.dirichlet(np.full(n, 1.5)).reshape(-1, 1)
 
             print(a, a.sum())
-
 
             s = np.sin(phi) * a
             c = np.cos(phi) * a
