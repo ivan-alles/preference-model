@@ -78,9 +78,7 @@ export default {
         if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
           return;
         }
-        const VARIANCES = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16];
-        const variance = VARIANCES[this.varianceSlider];
-        const enginePictures = await this.engine.getPictures(count, variance);
+        const enginePictures = await this.engine.getPictures(count, this.varianceSlider);
         for(let enginePicture of enginePictures) {
           this.cells.push({
             kind: cellKind.PICTURE,

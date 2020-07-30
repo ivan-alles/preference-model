@@ -1,5 +1,12 @@
 import numpy as np
 
+def get_variance_factor(value):
+    """
+    Get a floting-point variance factor for a given intuitive value.
+    :param value: a number >= 0, 0 - no or very little changes, 8 - very strong changes.
+    :return: a factor.
+    """
+    return np.power(2.0, value - 4.0)
 
 class SphericalCoordinatesPreferenceModel:
     def __init__(self, shape=512, default_std=0.01, rng=None):
@@ -43,6 +50,7 @@ class SphericalCoordinatesPreferenceModel:
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
+        mutation_factor = get_variance_factor(mutation_factor)
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
@@ -75,13 +83,14 @@ class SphericalCoordinates2PreferenceModel:
     def train(self, training_examples):
         self._training_examples = training_examples
 
-    def generate(self, size, mutation_factor=1):
+    def generate(self, size, mutation_factor=0):
         """
         Generate new data for current model parameters.
         :param size the number of vectors to generate.
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
+        mutation_factor = get_variance_factor(mutation_factor)
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         elif len(self._training_examples) == 1:
@@ -137,6 +146,7 @@ class LinearPreferenceModel:
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
+        mutation_factor = get_variance_factor(mutation_factor)
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         elif len(self._training_examples) == 1:
@@ -191,6 +201,7 @@ class DimRedPreferenceModel:
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
+        mutation_factor = get_variance_factor(mutation_factor)
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
