@@ -54,6 +54,58 @@ class SphericalCoordinatesPreferenceModel:
             output = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
         return output.astype(dtype=np.float32)
 
+
+class SphericalCoordinates2PreferenceModel:
+    def __init__(self, shape=512, default_std=0.01, rng=None):
+        """
+        Create model object.
+        :param shape: shape of the vector to learn the preference from.
+        :param default_std: the value of standard deviation to use if we learn from only one training example.
+        """
+        self._rng = rng or np.random.RandomState(0)
+        self._shape = shape
+        self._default_std = default_std
+        # Learnable parameters
+        self._training_examples = []
+
+    @property
+    def is_random(self):
+        return len(self._training_examples) == 0
+
+    def train(self, training_examples):
+        self._training_examples = training_examples
+        self._a = -5.0
+
+    def generate(self, size, mutation_factor=1):
+        """
+        Generate new data for current model parameters.
+        :param size the number of vectors to generate.
+        :param mutation_factor the larger the factor, the more mutation has the output
+        :return: an array of vectors similar to those used for training.
+        """
+        if self.is_random:
+            output = sample_uniform_on_sphere(self._rng, self._shape, size)
+        elif len(self._training_examples) == 1:
+            output = np.tile(self._training_examples, (size, 1))
+        else:
+            assert size == 1
+            assert len(self._training_examples) == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
+
+            r, phi = cartesian_to_spherical_n(self._training_examples)
+
+            # a = self._rng.standard_normal(size=1) + 0.5
+            self._a += 0.1
+            a = self._a + 0.5
+            print(a)
+            a = np.array([a, 1-a]).reshape(-1, 1)
+            s = np.sin(phi) * a
+            c = np.cos(phi) * a
+            ouput_phi = np.arctan2(s.sum(axis=0), c.sum(axis=0))
+            output = spherical_to_cartesian_n(np.ones((size, 1)), ouput_phi)
+
+        return output
+
+
 class LinearPreferenceModel:
     def __init__(self, shape=512, default_cov=0.01, rng=None):
         """
