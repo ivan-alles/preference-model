@@ -74,7 +74,6 @@ class SphericalCoordinates2PreferenceModel:
 
     def train(self, training_examples):
         self._training_examples = training_examples
-        self._a = -5.0
 
     def generate(self, size, mutation_factor=1):
         """
@@ -93,15 +92,19 @@ class SphericalCoordinates2PreferenceModel:
 
             r, phi = cartesian_to_spherical_n(self._training_examples)
 
-            # a = self._rng.standard_normal(size=1) + 0.5
-            self._a += 0.1
-            a = self._a + 0.5
+            # [0, pi] -> [-pi, pi] for all but the last
+            phi[:, :-1] = 2 * phi[:, :-1] - np.pi
+
+            a = self._rng.standard_normal(size=1) * mutation_factor + 0.5
             print(a)
             a = np.array([a, 1-a]).reshape(-1, 1)
             s = np.sin(phi) * a
             c = np.cos(phi) * a
-            ouput_phi = np.arctan2(s.sum(axis=0), c.sum(axis=0))
-            output = spherical_to_cartesian_n(np.ones((size, 1)), ouput_phi)
+            output_phi = np.arctan2(s.sum(axis=0, keepdims=True), c.sum(axis=0, keepdims=True))
+            # [-pi, pi] -> [0, pi] for all but the last
+            output_phi[:, :-1] = (output_phi[:, :-1] + np.pi) / 2
+
+            output = spherical_to_cartesian_n(np.ones((size, 1)), output_phi)
 
         return output
 
