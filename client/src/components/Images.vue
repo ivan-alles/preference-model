@@ -29,7 +29,7 @@
               <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
             </span>
         </div>
-        <div v-else-if="cell.kind === cellKind.LIKES">
+        <div v-else-if="cell.kind === cellKind.LIKES" @click="relike(cell)">
           Learning from
           <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-div">
             <img :src="picture" class="likes-picture">
@@ -66,7 +66,6 @@ export default {
 
   methods: {
     isRandom: function() {
-      console.log(this.engine.isRandom);
       return this.engine.isRandom;
     },
 
@@ -99,21 +98,22 @@ export default {
         return;
       }
 
-      const liked_latents = [];
-      const liked_pictures = [];
+      const latents = [];
+      const pictures = [];
 
       for(let like of likes) {
           like.liked = false;
-          liked_latents.push(like.latents);
-          liked_pictures.push(like.picture)
+          latents.push(like.latents);
+          pictures.push(like.picture)
       }
 
       this.cells.push({
           kind: cellKind.LIKES,
-          pictures: liked_pictures
+          likes: likes,
+          pictures: pictures // TODO(ia): pictures are redundant, we can take them from likes.
       });
 
-      await this.engine.learn(liked_latents);
+      await this.engine.learn(latents);
       await this.getPictures();
     },
     async forgetLearning() {
@@ -130,6 +130,11 @@ export default {
     toggleLike(cell) {
       cell.liked = !cell.liked;
     },
+    relike(cell) {
+      for(let like of cell.likes) {
+          like.liked = true;
+      }
+    }
   },
   created() {
     this.engine = new Engine();
