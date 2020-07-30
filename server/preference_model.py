@@ -91,22 +91,30 @@ class SphericalCoordinates2PreferenceModel:
         :return: an array of vectors similar to those used for training.
         """
         mutation_factor = get_variance_factor(mutation_factor)
-        if self.is_random:
+        n = len(self._training_examples)
+        if n == 0:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
-        elif len(self._training_examples) == 1:
+        elif n == 1:
             output = np.tile(self._training_examples, (size, 1))
         else:
             assert size == 1
-            assert len(self._training_examples) == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
 
             r, phi = cartesian_to_spherical_n(self._training_examples)
 
             # [0, pi] -> [-pi, pi] for all but the last
             phi[:, :-1] = 2 * phi[:, :-1] - np.pi
 
-            a = self._rng.standard_normal(size=1) * mutation_factor + 0.5
-            print(a)
-            a = np.array([a, 1-a]).reshape(-1, 1)
+            if True:
+                # Simple test for n = 2
+                assert n == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
+                a = self._rng.standard_normal(size=1) * mutation_factor + 0.5
+                a = np.array([a, 1-a]).reshape(-1, 1)
+            else:
+                raise NotImplementedError()
+
+            print(a, a.sum())
+
+
             s = np.sin(phi) * a
             c = np.cos(phi) * a
             output_phi = np.arctan2(s.sum(axis=0, keepdims=True), c.sum(axis=0, keepdims=True))
