@@ -98,27 +98,32 @@ class SphericalLinearPreferenceModel:
         :param variance the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
+        if self.is_random:
+            return sample_uniform_on_sphere(self._rng, self._shape, size)
+
         # For variance from 0 to 4
         # a, scale, std
         params = [
-            (10, 1, .01),
-            (5, 1, .02),
+            (10, 1, .02),
+            (3, 1, .03),
             (1, 1, .05),     # Middle range - a uniform dist. in convex combination of training examples
             (1, 1.5, .07),   # Start going outside of the convex combination of training examples
             (1.2, 2.0, .1)  # Concentrate in the middle, as the values at the boarder have little visual difference
         ][variance]
 
         k = len(self._training_examples)
-        if k == 0:
-            output = sample_uniform_on_sphere(self._rng, self._shape, size)
-        elif k == 1:
-            output = np.tile(self._training_examples, (size, 1))
+
+        # Convert to spherical coordinates
+        _, phi = cartesian_to_spherical_n(self._training_examples)
+
+        # [0, pi] -> [-pi, pi] for all but the last
+        phi[:, :-1] = 2 * phi[:, :-1] - np.pi
+
+        if k == 1:
+            # Only one training example, it will be varied later by a normal "noise".
+            output_phi = phi
         else:
-            _, phi = cartesian_to_spherical_n(self._training_examples)
-
-            # [0, pi] -> [-pi, pi] for all but the last
-            phi[:, :-1] = 2 * phi[:, :-1] - np.pi
-
+            # Mix k training examples
             if hasattr(self, '_r0') and k == 2:
                 # Go through convex combinations.
                 self._r0 += 0.1
@@ -145,12 +150,14 @@ class SphericalLinearPreferenceModel:
 
             # Linear combinations of shape (size, 511)
             output_phi = np.arctan2(sin.sum(axis=1), cos.sum(axis=1))
-            output_phi += self._rng.normal(scale=params[2], size=output_phi.shape)
 
-            # [-pi, pi] -> [0, pi] for all but the last
-            output_phi[:, :-1] = (output_phi[:, :-1] + np.pi) / 2
+        # Add normal "noise"
+        output_phi += self._rng.normal(scale=params[2], size=output_phi.shape)
 
-            output = spherical_to_cartesian_n(np.ones((size, 1)), output_phi)
+        # [-pi, pi] -> [0, pi] for all but the last
+        output_phi[:, :-1] = (output_phi[:, :-1] + np.pi) / 2
+
+        output = spherical_to_cartesian_n(np.ones((size, 1)), output_phi)
 
         return output
 
