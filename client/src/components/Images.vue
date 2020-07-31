@@ -56,7 +56,7 @@ export default {
   data() {
     return {
       cells: [],
-      varianceSlider: 4,
+      varianceSlider: 2,
       pollPicturesIntervalId: null,
       cellKind, // Make this enum accessible in Vue code
     };
