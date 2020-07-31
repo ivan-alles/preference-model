@@ -393,3 +393,14 @@ def test_reduce_dimensionality():
         assert np.allclose(x, x1, atol=0.001)
 
 
+def test_normalize_angle():
+    assert preference_model.normalize_angle(0, 360, 0) == 0
+    assert preference_model.normalize_angle(200., 360, 0) == 200
+    assert preference_model.normalize_angle(200., 360) == -160.0
+    assert preference_model.normalize_angle(200, 360, -180) == -160.0
+
+    assert preference_model.normalize_angle(100, 180) == -80
+
+    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1, 2 * np.pi), -np.pi + 0.1)
+    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1), -np.pi + 0.1)
+    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1, 2 * np.pi, -np.pi), -np.pi + 0.1)

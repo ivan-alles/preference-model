@@ -10,7 +10,7 @@ def get_variance_factor(variance):
     return np.power(2.0, variance - 4.0)
 
 class SphericalCoordinatesPreferenceModel:
-    def __init__(self, shape=512, default_std=0.01, rng=None):
+    def __init__(self, shape=512, default_std=0.1, rng=None):
         """
         Create model object.
         :param shape: shape of the vector to learn the preference from.
@@ -35,10 +35,14 @@ class SphericalCoordinatesPreferenceModel:
         else:
             # Learn mean, std.
             assert (training_examples.ndim == 2)
-            r, phi = cartesian_to_spherical_n(training_examples)
+            _, phi = cartesian_to_spherical_n(training_examples)
+            # [0, pi] -> [-pi, pi] for all but the last
+            phi[:, :-1] = 2 * phi[:, :-1] - np.pi
             self._mean = mean_of_angles(phi, axis=0)
             if len(training_examples) > 1:
                 phi_c = phi - self._mean
+                # To [-pi, pi]
+                phi_c = normalize_angle(phi_c)
                 a = np.abs(phi_c)
                 self._std = mean_of_angles(a, axis=0)
             else:
@@ -59,7 +63,10 @@ class SphericalCoordinatesPreferenceModel:
             cov = np.diag(np.array(std ** 2) + 1e-5)
             phi = self._rng.multivariate_normal(mean=self._mean, cov=cov, size=size, check_valid="ignore").astype(
                 np.float32)
-            # TODO(ia): do we have to make sure that phi is in required range?
+            # To [-pi, pi]
+            phi = normalize_angle(phi)
+            # [-pi, pi] -> [0, pi] for all but the last
+            phi[:, :-1] = (phi[:, :-1] + np.pi) / 2
             output = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
         return output.astype(dtype=np.float32)
 
@@ -426,3 +433,18 @@ def scaled_dirichlet(rng, k, a, size=None, scale=1):
     """
     mean = 1. / k
     return (rng.dirichlet(np.full(k, a), size) - mean) * scale + mean
+
+def normalize_angle(angle, period=np.pi * 2, start=None):
+    """
+    Transforms the angle to the value in range [start, start + period].
+
+    :param angle: angle
+    :param period: period
+    :param start: minimal value of the resulting angle. If None, is set to -period/2.
+    :return: converted angle
+    """
+
+    if start is None:
+        start = -period / 2
+
+    return (angle - start) % period + start
