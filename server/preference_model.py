@@ -1,12 +1,13 @@
 import numpy as np
 
-def get_variance_factor(value):
+def get_variance_factor(variance):
     """
     Get a floting-point variance factor for a given intuitive value.
-    :param value: a number >= 0, 0 - no or very little changes, 8 - very strong changes.
+    This function is a baseline implementation to make all current test models work.
+    :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
     :return: a factor.
     """
-    return np.power(2.0, value - 4.0)
+    return np.power(2.0, variance - 4.0)
 
 class SphericalCoordinatesPreferenceModel:
     def __init__(self, shape=512, default_std=0.01, rng=None):
@@ -43,18 +44,18 @@ class SphericalCoordinatesPreferenceModel:
             else:
                 self._std = np.full(self._mean.shape, self._default_std, dtype=np.float32)
 
-    def generate(self, size, mutation_factor=1):
+    def generate(self, size, variance=1):
         """
         Generate new data for current model parameters.
         :param size the number of vectors to generate.
-        :param mutation_factor the larger the factor, the more mutation has the output
+        :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
         :return: an array of vectors similar to those used for training.
         """
-        mutation_factor = get_variance_factor(mutation_factor)
+        variance = [0.1, 0.4, 0.7, 1, 3][variance]
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
-            std = self._std * mutation_factor
+            std = self._std * variance
             cov = np.diag(np.array(std ** 2) + 1e-5)
             phi = self._rng.multivariate_normal(mean=self._mean, cov=cov, size=size, check_valid="ignore").astype(
                 np.float32)
@@ -84,11 +85,11 @@ class SphericalCoordinates2PreferenceModel:
         self._training_examples = training_examples
         # self._r0 = -5
 
-    def generate(self, size, mutation_factor=0):
+    def generate(self, size, variance=0):
         """
         Generate new data for current model parameters.
         :param size the number of vectors to generate.
-        :param mutation_factor the larger the factor, the more mutation has the output
+        :param variance the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
         k = len(self._training_examples)
@@ -108,21 +109,17 @@ class SphericalCoordinates2PreferenceModel:
                 r = np.array([self._r0, 1 - self._r0]).reshape(-1, 1)
             elif k == 2 and False:
                 # Simple test for n = 2
-                r = self._rng.standard_normal(size=1) * mutation_factor + 0.5
+                r = self._rng.standard_normal(size=1) * variance + 0.5
                 r = np.array([r, 1-r]).reshape(-1, 1)
             else:
-                # a, scale for mutation_factor from 0 to 8
+                # a, scale for variance from 0 to 8
                 params = [
-                    (20, 1),
                     (10, 1),
                     (5,  1),
-                    (2.5, 1),
                     (1, 1),      # Middle range - a uniform dist. in convex combination of training examples
-                    (1, 1.1),    # Start going outside of the convex combination of training examples
-                    (1.1, 1.2),  # Concentrate in the middle, as the values at the boarder have little visual difference
-                    (1.2, 1.5),
-                    (1.3, 2.0)
-                ][mutation_factor]
+                    (1, 1.5),    # Start going outside of the convex combination of training examples
+                    (1.2, 2.0)   # Concentrate in the middle, as the values at the boarder have little visual difference
+                ][variance]
                 # Random coefficients of shape (size, k)
                 r = scaled_dirichlet(self._rng, k=k, size=size, a=params[0], scale=params[1])
 
@@ -170,14 +167,14 @@ class LinearPreferenceModel:
         # Todo(ia): division by zero?
         self._training_examples = training_examples / np.linalg.norm(training_examples, axis=1, keepdims=True)
 
-    def generate(self, size, mutation_factor=1):
+    def generate(self, size, variance=1):
         """
         Generate new data for current model parameters.
         :param size the number of vectors to generate.
-        :param mutation_factor the larger the factor, the more mutation has the output
+        :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
         :return: an array of vectors similar to those used for training.
         """
-        mutation_factor = get_variance_factor(mutation_factor)
+        variance = get_variance_factor(variance)
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         elif len(self._training_examples) == 1:
@@ -192,7 +189,7 @@ class LinearPreferenceModel:
             # and therefore it is unclear how to implement large mutation factors.
             a = self._rng.standard_normal(size=1) + 0.5
             print(a)
-            output = tc[0] * a * mutation_factor + tc[1] * (1-a) * mutation_factor
+            output = tc[0] * a * variance + tc[1] * (1-a) * variance
             output += mean
             output = output.reshape(1, self._shape)
         return output
@@ -225,18 +222,18 @@ class DimRedPreferenceModel:
             training_examples /= np.linalg.norm(training_examples, axis=1, keepdims=True)
             self._dim_red = DimensionalityReduction(training_examples, 0.99)
 
-    def generate(self, size, mutation_factor=1):
+    def generate(self, size, variance=1):
         """
         Generate new data for current model parameters.
         :param size the number of vectors to generate.
-        :param mutation_factor the larger the factor, the more mutation has the output
+        :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
         :return: an array of vectors similar to those used for training.
         """
-        mutation_factor = get_variance_factor(mutation_factor)
+        variance = get_variance_factor(variance)
         if self.is_random:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         else:
-            cov = np.maximum(self._dim_red.cov, self._default_cov) * mutation_factor
+            cov = np.maximum(self._dim_red.cov, self._default_cov) * variance
             output_r = self._rng.multivariate_normal(mean=np.zeros_like(cov), cov=np.diag(cov), size=size)
             print(output_r)
             output = self._dim_red.restore_dim(output_r)

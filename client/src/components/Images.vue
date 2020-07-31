@@ -13,7 +13,7 @@
               <label>Variance</label>
             </b-col>
             <b-col sm="3">
-              <b-form-input v-model="varianceSlider" type="range" min="0" max="8" :disabled="isRandom()"></b-form-input>
+              <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
             </b-col>
           </b-row>
       </b-container>  
