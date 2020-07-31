@@ -97,9 +97,7 @@ class SphericalCoordinates2PreferenceModel:
         elif k == 1:
             output = np.tile(self._training_examples, (size, 1))
         else:
-            assert size == 1
-
-            r, phi = cartesian_to_spherical_n(self._training_examples)
+            _, phi = cartesian_to_spherical_n(self._training_examples)
 
             # [0, pi] -> [-pi, pi] for all but the last
             phi[:, :-1] = 2 * phi[:, :-1] - np.pi
@@ -125,14 +123,24 @@ class SphericalCoordinates2PreferenceModel:
                     (1.2, 1.5),
                     (1.3, 2.0)
                 ][mutation_factor]
-                r = scaled_dirichlet(self._rng, k=k, size=None,
-                                     a=params[0], scale=params[1]).reshape(k, 1)
+                # Random coefficients of shape (size, k)
+                r = scaled_dirichlet(self._rng, k=k, size=size, a=params[0], scale=params[1])
 
-            print(r, r.sum())
+            print(r, r.sum(axis=1))
 
-            s = np.sin(phi) * r
-            c = np.cos(phi) * r
-            output_phi = np.arctan2(s.sum(axis=0, keepdims=True), c.sum(axis=0, keepdims=True))
+            # Sines and cosines of shape (size, k, 511)
+            sin = np.broadcast_to(np.sin(phi), (size,) + phi.shape)
+            cos = np.broadcast_to(np.cos(phi), (size,) + phi.shape)
+
+            # Expand to shape (size, k, 1)
+            r = np.expand_dims(r, 2)
+
+            sin = sin * r
+            cos = cos * r
+
+            # Linear combinations of shape (size, 511)
+            output_phi = np.arctan2(sin.sum(axis=1), cos.sum(axis=1))
+
             # [-pi, pi] -> [0, pi] for all but the last
             output_phi[:, :-1] = (output_phi[:, :-1] + np.pi) / 2
 
