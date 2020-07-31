@@ -82,6 +82,7 @@ class SphericalCoordinates2PreferenceModel:
 
     def train(self, training_examples):
         self._training_examples = training_examples
+        self._a0 = -2
 
     def generate(self, size, mutation_factor=0):
         """
@@ -104,7 +105,10 @@ class SphericalCoordinates2PreferenceModel:
             # [0, pi] -> [-pi, pi] for all but the last
             phi[:, :-1] = 2 * phi[:, :-1] - np.pi
 
-            if False:
+            if hasattr(self, '_a0'):
+                self._a0 += 0.1
+                a = np.array([self._a0, 1 - self._a0]).reshape(-1, 1)
+            elif False:
                 # Simple test for n = 2
                 assert n == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
                 a = self._rng.standard_normal(size=1) * mutation_factor + 0.5
@@ -386,3 +390,22 @@ class DimensionalityReduction:
         x += self._mean
         return x
 
+
+def scaled_dirichlet(rng, k, a, size=None, scale=1):
+    """
+    Sample from a symmetric Dirichlet distribution of dimension k and parameter a, scaled around its mean.
+
+    It generates vectors of dimension k. Sum of the elements of the vectors is 1.
+    The elements are in the range [(1-f)/n, (f * (n-1) + 1) / n]
+    The mean of each element is 1 / k.
+    The variance is scale**2 * (k-1) / k**2 / (n * a + 1).
+
+    :param rng: random number generator.
+    :param k: dimensionality.
+    :param a: distribution parameter in [eps, +inf]. eps shall be > 0.01 or so to avoid nans.
+    :param size: output shape, the output will have a shape (size, k). If size is None, a vector of size k is returned.
+    :param scale: scale factor.
+    :return: a size vectors with k elements each.
+    """
+    mean = 1. / k
+    return (rng.dirichlet(np.full(k, a), size) - mean) * scale + mean

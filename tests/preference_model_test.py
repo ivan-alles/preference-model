@@ -265,6 +265,23 @@ def test_sample_uniform_on_sphere_plot():
     plt.show()
 
 
+def test_scaled_dirichlet_plot():
+    # Set to False to see the plot
+    if False:
+        return
+
+    rng = np.random.RandomState(seed=1)
+    points = preference_model.scaled_dirichlet(rng, k=3, a=1, size=1000, scale=2)
+
+    fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
+    points = np.rollaxis(points, 1, 0)
+    ax.scatter(*points, marker='+')
+    r = [-0.2, 1.2]
+    ax.set_xlim(*r)
+    ax.set_ylim(*r)
+    ax.set_zlim(*r)
+    plt.show()
+
 def test_reduce_dimensionality_plot():
     # Set to False to see the plot
     if True:
