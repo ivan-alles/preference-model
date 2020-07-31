@@ -1,75 +1,5 @@
 import numpy as np
 
-def get_variance_factor(variance):
-    """
-    Get a floting-point variance factor for a given intuitive value.
-    This function is a baseline implementation to make all current test models work.
-    :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
-    :return: a factor.
-    """
-    return np.power(2.0, variance - 4.0)
-
-class SphericalCoordinatesPreferenceModel:
-    def __init__(self, shape=512, default_std=0.1, rng=None):
-        """
-        Create model object.
-        :param shape: shape of the vector to learn the preference from.
-        :param default_std: the value of standard deviation to use if we learn from only one training example.
-        """
-        self._rng = rng or np.random.RandomState(0)
-        self._shape = shape
-        self._default_std = default_std
-        # Learnable parameters
-        self._mean = None
-        self._std = None
-
-    @property
-    def is_random(self):
-        return self._std is None
-
-    def train(self, training_examples):
-        if len(training_examples) == 0:
-            # Reset the trainable parameters and use a uniform distribution.
-            self._mean = None
-            self._std = None
-        else:
-            # Learn mean, std.
-            assert (training_examples.ndim == 2)
-            _, phi = cartesian_to_spherical_n(training_examples)
-            # [0, pi] -> [-pi, pi] for all but the last
-            phi[:, :-1] = 2 * phi[:, :-1] - np.pi
-            self._mean = mean_of_angles(phi, axis=0)
-            if len(training_examples) > 1:
-                phi_c = phi - self._mean
-                # To [-pi, pi]
-                phi_c = normalize_angle(phi_c)
-                a = np.abs(phi_c)
-                self._std = mean_of_angles(a, axis=0)
-            else:
-                self._std = np.full(self._mean.shape, self._default_std, dtype=np.float32)
-
-    def generate(self, size, variance=1):
-        """
-        Generate new data for current model parameters.
-        :param size the number of vectors to generate.
-        :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
-        :return: an array of vectors similar to those used for training.
-        """
-        variance = [0.1, 0.4, 0.7, 1, 3][variance]
-        if self.is_random:
-            output = sample_uniform_on_sphere(self._rng, self._shape, size)
-        else:
-            std = self._std * variance
-            cov = np.diag(np.array(std ** 2) + 1e-5)
-            phi = self._rng.multivariate_normal(mean=self._mean, cov=cov, size=size, check_valid="ignore").astype(
-                np.float32)
-            # To [-pi, pi]
-            phi = normalize_angle(phi)
-            # [-pi, pi] -> [0, pi] for all but the last
-            phi[:, :-1] = (phi[:, :-1] + np.pi) / 2
-            output = spherical_to_cartesian_n(np.full((len(phi), 1), 1), phi)
-        return output.astype(dtype=np.float32)
-
 
 class SphericalLinearPreferenceModel:
     def __init__(self, shape=512, rng=None):
@@ -161,117 +91,6 @@ class SphericalLinearPreferenceModel:
 
         return output
 
-
-class LinearPreferenceModel:
-    def __init__(self, shape=512, default_cov=0.01, rng=None):
-        """
-        Create model object.
-        :param shape: shape of the vector to learn the preference from.
-        :param default_std: the value of standard deviation to use if we learn from only one training example.
-        """
-        self._rng = rng or np.random.RandomState(0)
-        self._shape = shape
-        self._default_cov = default_cov
-        # Learnable parameters are inside the DimensionalityReduciton instance.
-        self._training_examples = []
-
-    @property
-    def is_random(self):
-        return len(self._training_examples) == 0
-
-    def train(self, training_examples):
-        # Todo(ia): division by zero?
-        self._training_examples = training_examples / np.linalg.norm(training_examples, axis=1, keepdims=True)
-        # self._r0 = -5
-
-    def generate(self, size, variance=1):
-        """
-        Generate new data for current model parameters.
-        :param size the number of vectors to generate.
-        :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
-        :return: an array of vectors similar to those used for training.
-        """
-        k = len(self._training_examples)
-        if k == 0:
-            output = sample_uniform_on_sphere(self._rng, self._shape, size)
-        elif len(self._training_examples) == 1:
-            output = np.tile(self._training_examples, (size, 1))
-        else:
-            if hasattr(self, '_r0') and k == 2:
-                # Go through convex combinations.
-                self._r0 += 0.1
-                r = np.array([self._r0, 1 - self._r0]).reshape(size, k)
-            elif k == 2 and False:
-                # Simple test for n = 2
-                r = self._rng.standard_normal(size=1) * variance + 0.5
-                r = np.array([r, 1-r]).reshape(size, k)
-            else:
-                # a, scale for variance from 0 to 8
-                params = [
-                    (10, 1),
-                    (5,  1),
-                    (1, 1),      # Middle range - a uniform dist. in convex combination of training examples
-                    (1, 1.5),    # Start going outside of the convex combination of training examples
-                    (1.2, 2.0)   # Concentrate in the middle, as the values at the boarder have little visual difference
-                ][variance]
-                # Random coefficients of shape (size, k)
-                r = scaled_dirichlet(self._rng, k=k, size=size, a=params[0], scale=params[1])
-
-            print(r, r.sum(axis=1))
-
-            # Shape (k, 512) -> (size, k, 512)
-            t = np.broadcast_to(self._training_examples, (size,) + self._training_examples.shape)
-
-            # Expand to shape (size, k, 1)
-            r = np.expand_dims(r, 2)
-
-            output = np.sum(t * r, axis=1)
-        return output
-
-
-class DimRedPreferenceModel:
-    def __init__(self, shape=512, default_cov=0.01, rng=None):
-        """
-        Create model object.
-        :param shape: shape of the vector to learn the preference from.
-        :param default_std: the value of standard deviation to use if we learn from only one training example.
-        """
-        self._rng = rng or np.random.RandomState(0)
-        self._shape = shape
-        self._default_cov = default_cov
-        # Learnable parameters are inside the DimensionalityReduciton instance.
-        self._dim_red = None
-
-    @property
-    def is_random(self):
-        return self._dim_red is None
-
-    def train(self, training_examples):
-        if len(training_examples) == 0:
-            # Reset the trainable parameters and use a uniform distribution.
-            self._dim_red = None
-        else:
-            # Put the points onto the sphere.
-            # Todo(ia): division by zero?
-            training_examples /= np.linalg.norm(training_examples, axis=1, keepdims=True)
-            self._dim_red = DimensionalityReduction(training_examples, 0.99)
-
-    def generate(self, size, variance=1):
-        """
-        Generate new data for current model parameters.
-        :param size the number of vectors to generate.
-        :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
-        :return: an array of vectors similar to those used for training.
-        """
-        variance = get_variance_factor(variance)
-        if self.is_random:
-            output = sample_uniform_on_sphere(self._rng, self._shape, size)
-        else:
-            cov = np.maximum(self._dim_red.cov, self._default_cov) * variance
-            output_r = self._rng.multivariate_normal(mean=np.zeros_like(cov), cov=np.diag(cov), size=size)
-            print(output_r)
-            output = self._dim_red.restore_dim(output_r)
-        return output
 
 def spherical_to_cartesian_n(r, phi):
     """
@@ -375,73 +194,6 @@ def sample_uniform_on_sphere(rng, dim, size):
     return rng.normal(size=(size, dim))
 
 
-def sample_von_moses_fisher(rng, dim, mu, kappa, size, epsilon=1e-5):
-    """
-    Sample from von Moses-Fisher distribution n-sphere.
-
-    We use the rejection sampling algorithm: https://en.wikipedia.org/wiki/Rejection_sampling
-
-    :param rng a random number generator to use.
-    :param dim: dimension of the space (e.g. 3 for 3d).
-    :param mu: mu parameter of the distribution, equivalent to the mean.
-    :param kappa: kappa parameter of the distribution. The larger kappa, the more concentrated are the points.
-    Zero is equivalent to the uniform distribution.
-    :param size: number of points.
-    :return: an array of unit vectors in R**dim space.
-    """
-
-    result = []
-    mu = np.array(mu, dtype=np.float64)
-    if np.abs(np.linalg.norm(mu) - 1) > epsilon:
-        raise ValueError(f'Mu must be a unit vector')
-
-    c = np.exp(1)
-
-    while len(result) < size:
-        x = sample_uniform_on_sphere(rng, dim, 1)[0]
-        n = np.linalg.norm(x)
-        if n < epsilon:
-            continue
-        x /= n
-        u = rng.uniform(0, c)
-        f = np.exp(kappa * (np.dot(x, mu) - 1) + 1)
-        if u <= f:
-            result.append(x)
-
-    return np.array(result)
-
-
-class DimensionalityReduction:
-    def __init__(self, x, accuracy=0.9):
-        x = np.array(x)
-        self._mean = x.mean(axis=0)
-        x -= self._mean
-        u, s, vt = np.linalg.svd(x)
-        sum_s = np.sum(s)
-        epsilon = 1e-5
-        if sum_s > epsilon:
-            dim_r = len(s) - (np.cumsum(s) / sum_s >= accuracy).sum() + 1
-        else:
-            dim_r = 1
-
-        cov = s**2 / len(x)
-        self.cov = cov[:dim_r]
-
-        self._vr = vt.T[:, :dim_r]
-        self._vt_back = vt[:dim_r, :]
-
-    def reduce_dim(self, x):
-        x = np.array(x) - self._mean
-        xr = np.dot(x, self._vr)
-        return xr
-
-    def restore_dim(self, xr):
-        xr = np.array(xr)
-        x = np.dot(xr, self._vt_back)
-        x += self._mean
-        return x
-
-
 def scaled_dirichlet(rng, k, a, size=None, scale=1):
     """
     Sample from a symmetric Dirichlet distribution of dimension k and parameter a, scaled around its mean.
@@ -460,6 +212,7 @@ def scaled_dirichlet(rng, k, a, size=None, scale=1):
     """
     mean = 1. / k
     return (rng.dirichlet(np.full(k, a), size) - mean) * scale + mean
+
 
 def normalize_angle(angle, period=np.pi * 2, start=None):
     """

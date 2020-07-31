@@ -19,10 +19,7 @@ if not DUMMY_IMAGES:
     generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
 
 
-# preference_model = preference_model.LinearPreferenceModel(rng=rng)
 preference_model = preference_model.SphericalLinearPreferenceModel(rng=rng)
-# preference_model = preference_model.DimRedPreferenceModel(rng=rng)
-# preference_model = preference_model.SphericalCoordinatesPreferenceModel(rng=rng)
 
 def encode_image(image):
     """
