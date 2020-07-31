@@ -113,11 +113,11 @@ class SphericalLinearPreferenceModel:
             if hasattr(self, '_r0') and k == 2:
                 # Go through convex combinations.
                 self._r0 += 0.1
-                r = np.array([self._r0, 1 - self._r0]).reshape(-1, 1)
+                r = np.array([self._r0, 1 - self._r0]).reshape(size, k)
             elif k == 2 and False:
                 # Simple test for n = 2
                 r = self._rng.standard_normal(size=1) * variance + 0.5
-                r = np.array([r, 1-r]).reshape(-1, 1)
+                r = np.array([r, 1-r]).reshape(size, k)
             else:
                 # a, scale for variance from 0 to 8
                 params = [
@@ -173,6 +173,7 @@ class LinearPreferenceModel:
     def train(self, training_examples):
         # Todo(ia): division by zero?
         self._training_examples = training_examples / np.linalg.norm(training_examples, axis=1, keepdims=True)
+        # self._r0 = -5
 
     def generate(self, size, variance=1):
         """
@@ -181,24 +182,41 @@ class LinearPreferenceModel:
         :param variance: an integer [0, 4], 0 - no or very small changes, 3 - medium,  5 - very large.
         :return: an array of vectors similar to those used for training.
         """
-        variance = get_variance_factor(variance)
-        if self.is_random:
+        k = len(self._training_examples)
+        if k == 0:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
         elif len(self._training_examples) == 1:
             output = np.tile(self._training_examples, (size, 1))
         else:
-            # TODO(ia): support size > 1
-            assert size == 1
-            mean = self._training_examples.mean(axis=0)
-            tc = self._training_examples - mean
-            assert len(tc) == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
-            # TODO(ia): now there is a problem if a > 2 or a < -1, it does not really change the pictures visually
-            # and therefore it is unclear how to implement large mutation factors.
-            a = self._rng.standard_normal(size=1) + 0.5
-            print(a)
-            output = tc[0] * a * variance + tc[1] * (1-a) * variance
-            output += mean
-            output = output.reshape(1, self._shape)
+            if hasattr(self, '_r0') and k == 2:
+                # Go through convex combinations.
+                self._r0 += 0.1
+                r = np.array([self._r0, 1 - self._r0]).reshape(size, k)
+            elif k == 2 and False:
+                # Simple test for n = 2
+                r = self._rng.standard_normal(size=1) * variance + 0.5
+                r = np.array([r, 1-r]).reshape(size, k)
+            else:
+                # a, scale for variance from 0 to 8
+                params = [
+                    (10, 1),
+                    (5,  1),
+                    (1, 1),      # Middle range - a uniform dist. in convex combination of training examples
+                    (1, 1.5),    # Start going outside of the convex combination of training examples
+                    (1.2, 2.0)   # Concentrate in the middle, as the values at the boarder have little visual difference
+                ][variance]
+                # Random coefficients of shape (size, k)
+                r = scaled_dirichlet(self._rng, k=k, size=size, a=params[0], scale=params[1])
+
+            print(r, r.sum(axis=1))
+
+            # Shape (k, 512) -> (size, k, 512)
+            t = np.broadcast_to(self._training_examples, (size,) + self._training_examples.shape)
+
+            # Expand to shape (size, k, 1)
+            r = np.expand_dims(r, 2)
+
+            output = np.sum(t * r, axis=1)
         return output
 
 
