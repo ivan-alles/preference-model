@@ -72,7 +72,7 @@ class SphericalCoordinatesPreferenceModel:
 
 
 class SphericalLinearPreferenceModel:
-    def __init__(self, shape=512, default_std=0.01, rng=None):
+    def __init__(self, shape=512, rng=None):
         """
         Create model object.
         :param shape: shape of the vector to learn the preference from.
@@ -80,7 +80,6 @@ class SphericalLinearPreferenceModel:
         """
         self._rng = rng or np.random.RandomState(0)
         self._shape = shape
-        self._default_std = default_std
         # Learnable parameters
         self._training_examples = []
 
@@ -99,6 +98,16 @@ class SphericalLinearPreferenceModel:
         :param variance the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
+        # For variance from 0 to 4
+        # a, scale, std
+        params = [
+            (10, 1, .01),
+            (5, 1, .02),
+            (1, 1, .05),     # Middle range - a uniform dist. in convex combination of training examples
+            (1, 1.5, .07),   # Start going outside of the convex combination of training examples
+            (1.2, 2.0, .1)  # Concentrate in the middle, as the values at the boarder have little visual difference
+        ][variance]
+
         k = len(self._training_examples)
         if k == 0:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
@@ -119,14 +128,6 @@ class SphericalLinearPreferenceModel:
                 r = self._rng.standard_normal(size=1) * variance + 0.5
                 r = np.array([r, 1-r]).reshape(size, k)
             else:
-                # a, scale for variance from 0 to 8
-                params = [
-                    (10, 1),
-                    (5,  1),
-                    (1, 1),      # Middle range - a uniform dist. in convex combination of training examples
-                    (1, 1.5),    # Start going outside of the convex combination of training examples
-                    (1.2, 2.0)   # Concentrate in the middle, as the values at the boarder have little visual difference
-                ][variance]
                 # Random coefficients of shape (size, k)
                 r = scaled_dirichlet(self._rng, k=k, size=size, a=params[0], scale=params[1])
 
@@ -144,6 +145,7 @@ class SphericalLinearPreferenceModel:
 
             # Linear combinations of shape (size, 511)
             output_phi = np.arctan2(sin.sum(axis=1), cos.sum(axis=1))
+            output_phi += self._rng.normal(scale=params[2], size=output_phi.shape)
 
             # [-pi, pi] -> [0, pi] for all but the last
             output_phi[:, :-1] = (output_phi[:, :-1] + np.pi) / 2
