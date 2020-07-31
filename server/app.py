@@ -10,7 +10,7 @@ from PIL import Image
 from server import generator
 from server import preference_model
 
-rng = np.random.RandomState()
+rng = np.random.RandomState(0)
 
 #  Set to true for a fast startup and responses. Is useful to test the client.
 DUMMY_IMAGES = False
