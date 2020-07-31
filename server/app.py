@@ -20,8 +20,9 @@ if not DUMMY_IMAGES:
 
 
 # preference_model = preference_model.LinearPreferenceModel(rng=rng)
+# preference_model = preference_model.SphericalLinearPreferenceModel(rng=rng)
 # preference_model = preference_model.DimRedPreferenceModel(rng=rng)
-preference_model = preference_model.SphericalCoordinatesPreferenceModel(rng=rng)
+# preference_model = preference_model.SphericalCoordinatesPreferenceModel(rng=rng)
 
 def encode_image(image):
     """

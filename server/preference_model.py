@@ -71,7 +71,7 @@ class SphericalCoordinatesPreferenceModel:
         return output.astype(dtype=np.float32)
 
 
-class SphericalCoordinates2PreferenceModel:
+class SphericalLinearPreferenceModel:
     def __init__(self, shape=512, default_std=0.01, rng=None):
         """
         Create model object.
