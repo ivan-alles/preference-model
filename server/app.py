@@ -52,7 +52,7 @@ def images():
     :return: an HTTP response containing a list of image objects.
     """
     count = int(flask.request.args['count'])
-    variance = float(flask.request.args['variance'])
+    variance = int(flask.request.args['variance'])
     latents = preference_model.generate(count, variance)
     if DUMMY_IMAGES:
         images = np.broadcast_to(rng.uniform(0, 255, (count, 1, 1, 3)).astype(np.uint8),

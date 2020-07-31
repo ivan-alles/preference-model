@@ -267,7 +267,7 @@ def test_sample_uniform_on_sphere_plot():
 
 def test_scaled_dirichlet_plot():
     # Set to False to see the plot
-    if False:
+    if True:
         return
 
     rng = np.random.RandomState(seed=1)

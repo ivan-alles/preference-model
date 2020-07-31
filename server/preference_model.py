@@ -82,7 +82,7 @@ class SphericalCoordinates2PreferenceModel:
 
     def train(self, training_examples):
         self._training_examples = training_examples
-        self._a0 = -2
+        # self._r0 = -5
 
     def generate(self, size, mutation_factor=0):
         """
@@ -91,11 +91,10 @@ class SphericalCoordinates2PreferenceModel:
         :param mutation_factor the larger the factor, the more mutation has the output
         :return: an array of vectors similar to those used for training.
         """
-        mutation_factor = get_variance_factor(mutation_factor)
-        n = len(self._training_examples)
-        if n == 0:
+        k = len(self._training_examples)
+        if k == 0:
             output = sample_uniform_on_sphere(self._rng, self._shape, size)
-        elif n == 1:
+        elif k == 1:
             output = np.tile(self._training_examples, (size, 1))
         else:
             assert size == 1
@@ -105,21 +104,34 @@ class SphericalCoordinates2PreferenceModel:
             # [0, pi] -> [-pi, pi] for all but the last
             phi[:, :-1] = 2 * phi[:, :-1] - np.pi
 
-            if hasattr(self, '_a0'):
-                self._a0 += 0.1
-                a = np.array([self._a0, 1 - self._a0]).reshape(-1, 1)
+            if hasattr(self, '_r0'):
+                self._r0 += 0.1
+                r = np.array([self._r0, 1 - self._r0]).reshape(-1, 1)
             elif False:
                 # Simple test for n = 2
-                assert n == 2, "This is a simple test for 2 training examples: tc0 * a + tc1 * (1-a)"
-                a = self._rng.standard_normal(size=1) * mutation_factor + 0.5
-                a = np.array([a, 1-a]).reshape(-1, 1)
+                assert k == 2, "This is a simple test for 2 training examples: tc0 * r + tc1 * (1-r)"
+                r = self._rng.standard_normal(size=1) * mutation_factor + 0.5
+                r = np.array([r, 1-r]).reshape(-1, 1)
             else:
-                a = self._rng.dirichlet(np.full(n, 1.5)).reshape(-1, 1)
+                # a, scale for mutation_factor from 0 to 8
+                params = [
+                    (20, 1),
+                    (10, 1),
+                    (5,  1),
+                    (2.5, 1),
+                    (1, 1),    # Middle range - a uniform dist. in convex combination of training examples
+                    (1, 1.1),  # Start going outside of the convex combination of training examples
+                    (1.1, 1.2), # Concentrate in the middle, as the values at the boarder have little visual difference
+                    (1.2, 1.5),
+                    (1.3, 2.0)
+                ][mutation_factor]
+                r = scaled_dirichlet(self._rng, k=k, size=None,
+                                     a=params[0], scale=params[1]).reshape(k, 1)
 
-            print(a, a.sum())
+            print(r, r.sum())
 
-            s = np.sin(phi) * a
-            c = np.cos(phi) * a
+            s = np.sin(phi) * r
+            c = np.cos(phi) * r
             output_phi = np.arctan2(s.sum(axis=0, keepdims=True), c.sum(axis=0, keepdims=True))
             # [-pi, pi] -> [0, pi] for all but the last
             output_phi[:, :-1] = (output_phi[:, :-1] + np.pi) / 2
