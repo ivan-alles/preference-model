@@ -104,12 +104,12 @@ class SphericalCoordinates2PreferenceModel:
             # [0, pi] -> [-pi, pi] for all but the last
             phi[:, :-1] = 2 * phi[:, :-1] - np.pi
 
-            if hasattr(self, '_r0'):
+            if hasattr(self, '_r0') and k == 2:
+                # Go through convex combinations.
                 self._r0 += 0.1
                 r = np.array([self._r0, 1 - self._r0]).reshape(-1, 1)
-            elif False:
+            elif k == 2 and False:
                 # Simple test for n = 2
-                assert k == 2, "This is a simple test for 2 training examples: tc0 * r + tc1 * (1-r)"
                 r = self._rng.standard_normal(size=1) * mutation_factor + 0.5
                 r = np.array([r, 1-r]).reshape(-1, 1)
             else:
@@ -119,9 +119,9 @@ class SphericalCoordinates2PreferenceModel:
                     (10, 1),
                     (5,  1),
                     (2.5, 1),
-                    (1, 1),    # Middle range - a uniform dist. in convex combination of training examples
-                    (1, 1.1),  # Start going outside of the convex combination of training examples
-                    (1.1, 1.2), # Concentrate in the middle, as the values at the boarder have little visual difference
+                    (1, 1),      # Middle range - a uniform dist. in convex combination of training examples
+                    (1, 1.1),    # Start going outside of the convex combination of training examples
+                    (1.1, 1.2),  # Concentrate in the middle, as the values at the boarder have little visual difference
                     (1.2, 1.5),
                     (1.3, 2.0)
                 ][mutation_factor]
