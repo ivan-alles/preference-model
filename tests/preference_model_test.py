@@ -285,6 +285,23 @@ def test_scaled_dirichlet_plot():
     ax.set_zlim(*r)
     plt.show()
 
+def test_scaled_dirichlet():
+    rng = np.random.RandomState(1)
+
+    for i in range(100):
+        k = rng.randint(2, 10)
+        a = rng.uniform(.1, 10)
+        scale = rng.uniform(.5, 2)
+        n = 5000
+        x = preference_model.scaled_dirichlet(rng, k, a, n, scale)
+        assert x.shape == (n, k)
+        assert np.allclose(x.sum(axis=1), np.ones(n))
+        assert (x >= (1-scale) / k).all()
+        assert (x <= (scale * (k-1) + 1) / k).all()
+        assert np.allclose(x.mean(axis=0), np.full(k, 1/k), rtol=0.1)
+        std = scale * np.sqrt((k-1) / k**2 / (k * a + 1))
+        assert np.allclose(x.std(axis=0), np.full(k, std), rtol=0.1)
+
 
 def test_normalize_angle():
     assert preference_model.normalize_angle(0, 360, 0) == 0

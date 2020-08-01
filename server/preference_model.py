@@ -199,9 +199,9 @@ def scaled_dirichlet(rng, k, a, size=None, scale=1):
     Sample from a symmetric Dirichlet distribution of dimension k and parameter a, scaled around its mean.
 
     It generates vectors of dimension k. Sum of the elements of the vectors is 1.
-    The elements are in the range [(1-f)/n, (f * (n-1) + 1) / n]
+    The elements are in the range [(1-scale) / k, (scale * (k-1) + 1) / k]
     The mean of each element is 1 / k.
-    The variance is scale**2 * (k-1) / k**2 / (n * a + 1).
+    The variance is scale**2 * (k-1) / k**2 / (k * a + 1).
 
     :param rng: random number generator.
     :param k: dimensionality.
