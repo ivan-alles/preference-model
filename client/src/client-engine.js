@@ -1,16 +1,28 @@
+
+class Generator {
+  constructor() {
+    self.model = null;
+  }
+
+  generate(latents) {
+    let pictures = [latents];
+    return pictures;
+  }
+}
+
 class Engine {
-    async getImages() {
-      return "test";
-    }
+  constructor () {
+    this.generator = new Generator();
+  }
 
-    async learn(likes) {
-      return "test";
-    }
+  async getPictures(count, variance) {
+    return count + variance;
+  }
 
-    testfunc() {
+  async learn(likes) {
+    return likes;
+  }
 
-      return "test";      
-    }
 }
 
 
