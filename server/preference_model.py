@@ -210,8 +210,18 @@ def scaled_dirichlet(rng, k, a, size=None, scale=1):
     :param scale: scale factor.
     :return: a size vectors with k elements each.
     """
+    if type(size) == int:
+        size = (size,)
+    if False:
+        # Use the native numpy function.
+        x =rng.dirichlet(np.full(k, a), size)
+    else:
+        # Use the gamma distribution as in tensorflow.js.
+        y = rng.gamma(np.full(k, a), size=size + (k,))
+        x = y / y.sum(axis=-1, keepdims=True)
+
     mean = 1. / k
-    return (rng.dirichlet(np.full(k, a), size) - mean) * scale + mean
+    return (x - mean) * scale + mean
 
 
 def normalize_angle(angle, period=np.pi * 2, start=None):

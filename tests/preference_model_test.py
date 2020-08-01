@@ -274,7 +274,7 @@ def test_scaled_dirichlet_plot():
         return
 
     rng = np.random.RandomState(seed=1)
-    points = preference_model.scaled_dirichlet(rng, k=3, a=1, size=1000, scale=2)
+    points = preference_model.scaled_dirichlet(rng, k=3, a=1, size=1000, scale=1)
 
     fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
     points = np.rollaxis(points, 1, 0)
