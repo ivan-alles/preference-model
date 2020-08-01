@@ -2,9 +2,6 @@ import numpy as np
 from server import preference_model
 import matplotlib.pyplot as plt
 
-# TODO(ia): review tests, simplify numpy code
-# TODO(ia): shall we simplify import of the preference_model module?
-
 
 def test_spherical_to_cartesian_n_2():
     def compute(r, phi):
@@ -186,10 +183,10 @@ def test_cartesian_to_spherical_n_back_and_forth():
 
         assert phi.shape[1] == n - 1
         # Last phi is in range -pi, pi
-        assert np.logical_and(phi[:, -1] >= -np.pi, phi[:, -1] <= np.pi).sum() == len(phi)
+        assert np.logical_and(phi[:, -1] >= -np.pi, phi[:, -1] <= np.pi).all()
         # Other phi are in range [0, pi]
         if n > 2:
-            assert np.logical_and(phi[:, :-1] >= 0, phi[:, :-1] <= np.pi).sum() == len(phi) * (n-2)
+            assert np.logical_and(phi[:, :-1] >= 0, phi[:, :-1] <= np.pi).all()
 
         x1 = preference_model.spherical_to_cartesian_n(r, phi)
         assert np.allclose(x, x1)
