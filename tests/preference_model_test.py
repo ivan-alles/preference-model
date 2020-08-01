@@ -1,7 +1,10 @@
 import numpy as np
 from server import preference_model
 import matplotlib.pyplot as plt
-from scipy.stats import special_ortho_group
+
+# TODO(ia): review tests, simplify numpy code
+# TODO(ia): shall we simplify import of the preference_model module?
+
 
 def test_spherical_to_cartesian_n_2():
     def compute(r, phi):
@@ -353,9 +356,14 @@ def test_normalize_angle():
     assert preference_model.normalize_angle(200., 360, 0) == 200
     assert preference_model.normalize_angle(200., 360) == -160.0
     assert preference_model.normalize_angle(200, 360, -180) == -160.0
+    assert preference_model.normalize_angle(200. + 36000, 360, 0) == 200
+    assert preference_model.normalize_angle(200. - 36000, 360, 0) == 200
 
     assert preference_model.normalize_angle(100, 180) == -80
 
     assert np.allclose(preference_model.normalize_angle(np.pi + 0.1, 2 * np.pi), -np.pi + 0.1)
     assert np.allclose(preference_model.normalize_angle(np.pi + 0.1), -np.pi + 0.1)
     assert np.allclose(preference_model.normalize_angle(np.pi + 0.1, 2 * np.pi, -np.pi), -np.pi + 0.1)
+
+    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1 + 100 * np.pi), -np.pi + 0.1)
+    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1 - 100 * np.pi), -np.pi + 0.1)
