@@ -44,7 +44,8 @@
 </template>
 
 <script>
-import { Engine } from '@/server-engine'
+// import { Engine } from '@/server-engine'
+import { Engine } from '@/client-engine'
 
 const cellKind = {
     PICTURE: 'picture',
