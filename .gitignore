@@ -1,5 +1,6 @@
 # TF models
 *.tf/
+*.tfjs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
