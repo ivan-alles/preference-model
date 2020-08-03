@@ -9,6 +9,10 @@ class Engine {
       this.isRandom = true;
     }
 
+    async init() {
+      // Nothing to do.
+    }
+
     async getPictures(count, variance) {
       if(this.firstCall) {
         this.firstCall = false;

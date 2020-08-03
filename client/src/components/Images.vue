@@ -18,6 +18,7 @@
           </b-row>
       </b-container>  
     </div>
+    <canvas id="testCanvas" width="200" height="200" style="border:1px;" />
     <div class="flex-container content">
       <div v-for="(cell, index) in cells" :key="index" class="cell">
         <div v-if="cell.kind === cellKind.PICTURE" >
@@ -76,6 +77,10 @@ export default {
     },
 
     async getPictures(count=1) {
+        // Wait for async init() completion.
+        if(!this.engine.initDone)
+          return;
+
         if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
           return;
         }
@@ -91,6 +96,10 @@ export default {
     },
 
     async learnFromLikes() {
+      // Wait for async init() completion.
+      if(!this.engine.initDone)
+        return;
+
       const likes = this.findLikes();
 
       if (likes.length === 0) {
@@ -136,11 +145,13 @@ export default {
     }
   },
   created() {
-    this.engine = new Engine();
     this.cells = [];
     this.cells.push({
       kind: cellKind.RANDOM
     });    
+
+    this.engine = new Engine();
+    this.engine.init();
   },
 
   mounted() {
