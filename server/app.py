@@ -16,7 +16,7 @@ rng = np.random.RandomState(0)
 #  functionality of the client.
 USE_GENERATOR = False
 
-if not USE_GENERATOR:
+if USE_GENERATOR:
     from server import generator
     generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
 
@@ -55,10 +55,10 @@ def images():
     variance = int(flask.request.args['variance'])
     latents = preference_model.generate(count, variance)
     if USE_GENERATOR:
+        images = generator.generate(latents)
+    else:
         images = np.broadcast_to(rng.uniform(0, 255, (count, 1, 1, 3)).astype(np.uint8),
                                  (count, 256, 256, 3))
-    else:
-        images = generator.generate(latents)
 
     image_objects = []
     for i in range(len(images)):
