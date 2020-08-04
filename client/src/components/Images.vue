@@ -45,8 +45,8 @@
 </template>
 
 <script>
-import { Engine } from '@/server-engine'
-// import { Engine } from '@/client-engine'
+// import { Engine } from '@/server-engine'
+import { Engine } from '@/client-engine'
 
 const cellKind = {
     PICTURE: 'picture',
@@ -82,6 +82,7 @@ export default {
     async getPicturesTask() {
         await this.engine.init();
         for(;;) {
+          try {
           await sleep(1000);
           if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
             continue;
@@ -94,6 +95,10 @@ export default {
               latents: enginePicture.latents,
               liked: false,
             });
+          }
+          }
+          catch(err) {
+            console.error(err, err.stack);
           }
         }
     },
