@@ -221,19 +221,3 @@ def scaled_dirichlet(rng, k, a, size=None, scale=1):
 
     mean = 1. / k
     return (x - mean) * scale + mean
-
-
-def normalize_angle(angle, period=np.pi * 2, start=None):
-    """
-    Transforms the angle to the value in range [start, start + period].
-
-    :param angle: angle
-    :param period: period
-    :param start: minimal value of the resulting angle. If None, is set to -period/2.
-    :return: converted angle
-    """
-
-    if start is None:
-        start = -period / 2
-
-    return (angle - start) % period + start

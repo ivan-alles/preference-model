@@ -299,20 +299,3 @@ def test_scaled_dirichlet():
         std = scale * np.sqrt((k-1) / k**2 / (k * a + 1))
         assert np.allclose(x.std(axis=0), np.full(k, std), rtol=0.1)
 
-
-def test_normalize_angle():
-    assert preference_model.normalize_angle(0, 360, 0) == 0
-    assert preference_model.normalize_angle(200., 360, 0) == 200
-    assert preference_model.normalize_angle(200., 360) == -160.0
-    assert preference_model.normalize_angle(200, 360, -180) == -160.0
-    assert preference_model.normalize_angle(200. + 36000, 360, 0) == 200
-    assert preference_model.normalize_angle(200. - 36000, 360, 0) == 200
-
-    assert preference_model.normalize_angle(100, 180) == -80
-
-    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1, 2 * np.pi), -np.pi + 0.1)
-    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1), -np.pi + 0.1)
-    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1, 2 * np.pi, -np.pi), -np.pi + 0.1)
-
-    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1 + 100 * np.pi), -np.pi + 0.1)
-    assert np.allclose(preference_model.normalize_angle(np.pi + 0.1 - 100 * np.pi), -np.pi + 0.1)

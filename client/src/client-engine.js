@@ -69,8 +69,10 @@ class PreferenceModel {
 
   generate(count, variance) {
       if (this.isRandom) {
-        const latents = tf.randomNormal([count, 512]);
-        return latents
+        // Sample uniform random points on n-sphere.
+        // See https://mathworld.wolfram.com/HyperspherePointPicking.html
+        // Do not normalize the length, as we will only work with the angles.
+        return tf.randomNormal([count, 512]);
       }
       const latents = [count, variance];
       return latents;
