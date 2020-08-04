@@ -143,5 +143,33 @@ class Engine {
     // TODO(ia): temp code end.
 }
 
+/**
+ * Sample from a symmetric Dirichlet distribution of dimension k and parameter a,
+ * scaled around its mean.
+ *
+ * @param k dimensionality.
+ * @param a concentration parameter in [eps, +inf]. eps shall be > 0.01 or so to avoid nans.
+ * @param shape output shape, the output will have a shape of [shape, k]. 
+ * @param scale scale: scale factor.
+ * @returns a tensor of shape [shape, k].
+ */
+function scaledDirichlet(k, a, shape, scale=1) {
+  // Use the gamma distribution to sample from a Dirichlet distribution.
+  // See https://en.wikipedia.org/wiki/Dirichlet_distribution
 
-export { Engine }
+  const y = tf.randomGamma([...shape, k], a);
+  const x = tf.div(y, y.sum(-1, true));
+  const mean = 1 / k;
+  const d = tf.sum(tf.mul(tf.sub(x, mean), scale), mean);
+
+  // y = rng.gamma(np.full(k, a), size=size + (k,))
+  // x = y / y.sum(axis=-1, keepdims=True)
+  // mean = 1. / k
+  // return (x - mean) * scale + mean
+
+  return d;
+}
+
+// TODO(ia): some functions here are exported only for tests.
+// How to avoid this namespace clutter?
+export { Engine, scaledDirichlet }
