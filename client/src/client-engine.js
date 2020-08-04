@@ -24,19 +24,17 @@ class Generator {
   async generate(latents) {
     console.log(`Generator.generate(), this.model ${this.model}`)
 
-    const input = tf.randomNormal([1, 512]);
-    let output = this.model.predict(input)
-
-    output = tf.clipByValue(output, 0, 1.0);
-    output = output.squeeze();
+    let output = this.model.predict(latents)
+    let picture = tf.clipByValue(output, 0, 1.0);
+    picture = picture.squeeze(); // TODO(ia): only 1 image is supported now. Extend to many.
 
     // TODO(ia): we draw the picture and then convert it into PNG.
-    // This is probably not efficient. We can optimize this by drawing
+    // This is probably not efficient. We can optimize this by d
     // directly on a canvas in Vue and save CPU time.
     let canvas = document.createElement("canvas");
-    await tf.browser.toPixels(output, canvas);
-    let imageData = canvas.toDataURL("image/png");
-    return imageData;
+    await tf.browser.toPixels(picture, canvas);
+    let pictureData = canvas.toDataURL("image/png");
+    return pictureData;
   }
 }
 
@@ -57,8 +55,13 @@ class PreferenceModel {
   }
 
   generate(size, variance) {
-      const output = [size, variance];
-      return output;
+      if (this.isRandom) {
+        const latents = tf.randomNormal([size, 512]);
+        return latents
+      }
+
+      const latents = [size, variance];
+      return latents;
   }
 }
 
@@ -82,8 +85,9 @@ class Engine {
   }
 
   async getPictures(count, variance) {
-    console.log(`Engine.getPictures() started, this.initDone ${this.initDone}`)
-    const picture = await this.generator.generate([]);
+    
+    const latents = this.preferenceModel.generate(count, variance);
+    const picture = await this.generator.generate(latents);
     const data = {
         "picture": picture,
         "latents": []
