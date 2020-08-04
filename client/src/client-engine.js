@@ -30,9 +30,13 @@ class Generator {
     output = tf.clipByValue(output, 0, 1.0);
     output = output.squeeze();
 
-    var canvas = document.getElementById("testCanvas")
+    // TODO(ia): we draw the picture and then convert it into PNG.
+    // This is probably not efficient. We can optimize this by drawing
+    // directly on a canvas in Vue and save CPU time.
+    let canvas = document.createElement("canvas");
     await tf.browser.toPixels(output, canvas);
-    console.log('done');
+    let imageData = canvas.toDataURL("image/png");
+    return imageData;
   }
 }
 
@@ -79,25 +83,29 @@ class Engine {
 
   async getPictures(count, variance) {
     console.log(`Engine.getPictures() started, this.initDone ${this.initDone}`)
-    if(this.initDone)
-      await this.generator.generate([]);
-
-    // TODO(ia): temp code begin.
-    if(this.firstCall) {
-      this.firstCall = false;
-      // reset to random pictures.
-      await axios.post(LEARN_URL, []);
+    const picture = await this.generator.generate([]);
+    const data = {
+        "picture": picture,
+        "latents": []
     }
+    return [data];
 
-    let result = await axios.get(PICTURES_URL, {
-        params: {
-            count: count,
-            variance: variance
-          }
-        }
-      );
-    return result.data.images;
-    // TODO(ia): temp code end.
+    // // TODO(ia): temp code begin.
+    // if(this.firstCall) {
+    //   this.firstCall = false;
+    //   // reset to random pictures.
+    //   await axios.post(LEARN_URL, []);
+    // }
+
+    // let result = await axios.get(PICTURES_URL, {
+    //     params: {
+    //         count: count,
+    //         variance: variance
+    //       }
+    //     }
+    //   );
+    // return result.data.images;
+    // // TODO(ia): temp code end.
   }
 
   async learn(likes) {
