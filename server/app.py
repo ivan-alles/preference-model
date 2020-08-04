@@ -12,7 +12,7 @@ from server import preference_model
 rng = np.random.RandomState(0)
 
 #  Set to true for a fast startup and responses. Is useful to test the client.
-DUMMY_IMAGES = True
+DUMMY_IMAGES = False
 
 if not DUMMY_IMAGES:
     from server import generator

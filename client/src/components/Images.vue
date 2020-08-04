@@ -45,8 +45,8 @@
 </template>
 
 <script>
-// import { Engine } from '@/server-engine'
-import { Engine } from '@/client-engine'
+import { Engine } from '@/server-engine'
+// import { Engine } from '@/client-engine'
 
 const cellKind = {
     PICTURE: 'picture',
@@ -76,30 +76,29 @@ export default {
       return likes;
     },
 
-    async getPictures(count=1) {
-        // Wait for async init() completion.
-        if(!this.engine.initDone)
-          return;
-
-        if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-          return;
-        }
-        const enginePictures = await this.engine.getPictures(count, this.varianceSlider);
-        for(let enginePicture of enginePictures) {
-          this.cells.push({
-            kind: cellKind.PICTURE,
-            picture: enginePicture.picture,
-            latents: enginePicture.latents,
-            liked: false,
-          });
+    /**
+    * Generates pictures in the background.
+    */
+    async getPicturesTask() {
+        await this.engine.init();
+        for(;;) {
+          await sleep(1000);
+          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
+            continue;
+          }
+          const enginePictures = await this.engine.getPictures(1, this.varianceSlider);
+          for(let enginePicture of enginePictures) {
+            this.cells.push({
+              kind: cellKind.PICTURE,
+              picture: enginePicture.picture,
+              latents: enginePicture.latents,
+              liked: false,
+            });
+          }
         }
     },
 
     async learnFromLikes() {
-      // Wait for async init() completion.
-      if(!this.engine.initDone)
-        return;
-
       const likes = this.findLikes();
 
       if (likes.length === 0) {
@@ -122,14 +121,12 @@ export default {
       });
 
       await this.engine.learn(latents);
-      await this.getPictures();
     },
     async forgetLearning() {
         this.cells.push({
           kind: cellKind.RANDOM
         });
         await this.engine.learn([]);
-        await this.getPictures();
     },
 
     deleteAllPictures() {
@@ -151,13 +148,10 @@ export default {
     });    
 
     this.engine = new Engine();
-    this.engine.init();
   },
 
   mounted() {
-    this.pollPicturesIntervalId = setInterval(() => {
-        this.getPictures();
-      }, 1000)
+    this.getPicturesTask();
   },
 
   beforeDestroy () {
@@ -165,9 +159,9 @@ export default {
   },
 };
 
-window.onscroll = function() {myFunction()};
+window.onscroll = function() {stickyHeader()};
 
-function myFunction() {
+function stickyHeader() {
   var header = document.getElementById("stickyHeader");
   var sticky = header.offsetTop;
 
@@ -176,6 +170,10 @@ function myFunction() {
   } else {
     header.classList.remove("sticky");
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 </script>

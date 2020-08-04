@@ -63,7 +63,7 @@ class Engine {
     console.log('Client Engine')
     this.generator = new Generator();
     this.preferenceModel = new PreferenceModel();
-    this.initDone = false;
+    this.initDone = false; // TODO(ia): this shall be no more necessary
 
     // TODO(ia): temp code begin.
     this.firstCall = true;
