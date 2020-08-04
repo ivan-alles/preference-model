@@ -1,9 +1,14 @@
 import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-node-gpu';
+tf.setBackend('cpu')
+
 import { scaledDirichlet } from '@/client-engine'
 
+test('tensorflow installed correctly', () => {
+  const t = tf.tensor1d([1, 2, 3]);
+  expect(t.shape).toStrictEqual([3]);
+});
 
-test('scaledDirichlet() works', () => {
+test('scaledDirichlet() shall work with various random parameters', () => {
 
   const k = 2;
   const a = 3;
@@ -11,9 +16,6 @@ test('scaledDirichlet() works', () => {
   const n = 5000;
   const x = scaledDirichlet(k, a, [n], scale);
 
-  const dummy = tf.tensor1d([1, 2, 3]);
-
-  expect(x.shape).toBe([n, k]);
-  expect(dummy).toBe([n, k]);
+  expect(x.shape).toStrictEqual([n, k]);
 
 });

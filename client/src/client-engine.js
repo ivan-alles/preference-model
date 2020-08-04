@@ -160,7 +160,7 @@ function scaledDirichlet(k, a, shape, scale=1) {
   const y = tf.randomGamma([...shape, k], a);
   const x = tf.div(y, y.sum(-1, true));
   const mean = 1 / k;
-  const d = tf.sum(tf.mul(tf.sub(x, mean), scale), mean);
+  const d = tf.add(tf.mul(tf.sub(x, mean), scale), mean);
 
   // y = rng.gamma(np.full(k, a), size=size + (k,))
   // x = y / y.sum(axis=-1, keepdims=True)
