@@ -11,10 +11,12 @@ from server import preference_model
 
 rng = np.random.RandomState(0)
 
-#  Set to true for a fast startup and responses. Is useful to test the client.
-DUMMY_IMAGES = False
+#  If True, initialize tensorflow and generate images by the model.
+#  This can be slow. You can set it to False to test the basic
+#  functionality of the client.
+USE_GENERATOR = False
 
-if not DUMMY_IMAGES:
+if not USE_GENERATOR:
     from server import generator
     generator = generator.Generator('karras2018iclr-celebahq-1024x1024.tf')
 
@@ -52,7 +54,7 @@ def images():
     count = int(flask.request.args['count'])
     variance = int(flask.request.args['variance'])
     latents = preference_model.generate(count, variance)
-    if DUMMY_IMAGES:
+    if USE_GENERATOR:
         images = np.broadcast_to(rng.uniform(0, 255, (count, 1, 1, 3)).astype(np.uint8),
                                  (count, 256, 256, 3))
     else:
