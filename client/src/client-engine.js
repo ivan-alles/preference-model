@@ -21,19 +21,32 @@ class Generator {
     console.log('Model loaded')
   }
 
+  /**
+   * Generate pictures from latents.
+   *
+   * @param latents a [count, 512] tensor of latents.
+   * @returns an array of pictures.
+   */
   async generate(latents) {
     console.log(`Generator.generate(), this.model ${this.model}`)
 
-    let output = this.model.predict(latents)
-    let picture = tf.clipByValue(output, 0, 1.0);
-    picture = picture.squeeze(); // TODO(ia): only 1 image is supported now. Extend to many.
+    const count = latents.shape[0];
 
-    // TODO(ia): we draw the picture and then convert it into PNG.
-    // This is probably not efficient. We can optimize this by d
-    // directly on a canvas in Vue and save CPU time.
-    let canvas = document.createElement("canvas");
-    await tf.browser.toPixels(picture, canvas);
-    let pictureData = canvas.toDataURL("image/png");
+    let output = this.model.predict(latents);
+    output = tf.clipByValue(output, 0, 1.0);
+    // Convert to an array of tensors of shapes [1, H, W, 3]
+    const pictures = tf.split(output, count, 0); 
+    const pictureData = [];
+
+    for(let i = 0; i < count; ++i) {
+      // TODO(ia): we draw the picture and then convert it into PNG.
+      // This is probably not efficient. We can optimize this by d
+      // directly on a canvas in Vue and save CPU time.
+      let canvas = document.createElement("canvas");
+      const picture = tf.squeeze(pictures[i]);
+      await tf.browser.toPixels(picture, canvas);
+      pictureData.push(canvas.toDataURL("image/png"));
+    }
     return pictureData;
   }
 }
@@ -54,13 +67,12 @@ class PreferenceModel {
     // this.r0 = -5;
   }
 
-  generate(size, variance) {
+  generate(count, variance) {
       if (this.isRandom) {
-        const latents = tf.randomNormal([size, 512]);
+        const latents = tf.randomNormal([count, 512]);
         return latents
       }
-
-      const latents = [size, variance];
+      const latents = [count, variance];
       return latents;
   }
 }
@@ -86,13 +98,21 @@ class Engine {
 
   async getPictures(count, variance) {
     
-    const latents = this.preferenceModel.generate(count, variance);
-    const picture = await this.generator.generate(latents);
-    const data = {
-        "picture": picture,
-        "latents": []
+    const latentsTensor = this.preferenceModel.generate(count, variance);
+    const pictures = await this.generator.generate(latentsTensor);
+    const latents = tf.split(latentsTensor, count, 0); // Convert to array of 1d tensors.
+
+    const result = [];
+    for(let i = 0; i < count; ++i) {
+      result.push(
+        {
+          "picture": pictures[i],
+          "latents": latents[i]
+        }
+      );
     }
-    return [data];
+
+    return result;
 
     // // TODO(ia): temp code begin.
     // if(this.firstCall) {
