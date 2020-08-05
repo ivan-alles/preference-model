@@ -170,6 +170,38 @@ function scaledDirichlet(shape, k, a, scale=1) {
   return d;
 }
 
+/**
+ * Converts n-dimensional spherical coordniates to cartesian coordinates. 
+ * The resulting vectors will be on a unit sphere.
+ * See https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates.
+ *
+ * @param phi a tensor [size, n-1] of angles.
+ *  phi[0:n-2] vary in range [0, pi], 
+ *  phi[n-1] in [0, 2*pi] or in [-pi, pi].
+ * @returns a tensor [size, n] of n-dimensional unit vectors.
+ */
+function sphericalToCartesian(phi) {
+    const size = phi.shape[0];  // Number of vectors
+    const n = phi.shape[1] + 1; // Dimentionality
+    const sin = tf.sin(phi);
+
+    let prodSin = tf.ones([size, n]);
+    for(let i = 1; i < n; ++i) {
+      const shifted = tf.concat([
+        tf.ones([size, i]), 
+        sin.slice([0, 0], [size, n - i])
+      ], 1);
+      prodSin = tf.mul(prodSin, shifted);
+    }
+    const cos = tf.cos(phi);
+    const x = tf.mul(
+      prodSin,
+      tf.concat([cos, tf.ones([size, 1])], 1)
+    );
+
+    return x;
+}
+
 // TODO(ia): some functions here are exported only for tests.
 // How to avoid this namespace clutter?
-export { Engine, scaledDirichlet }
+export { Engine, scaledDirichlet, sphericalToCartesian }

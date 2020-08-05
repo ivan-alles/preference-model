@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 tf.setBackend('cpu')
 
-import { scaledDirichlet } from '@/client-engine'
+import { scaledDirichlet, sphericalToCartesian } from '@/client-engine'
 
 test('tensorflow installed correctly', () => {
   const t = tf.tensor1d([1, 2, 3]);
@@ -9,15 +9,15 @@ test('tensorflow installed correctly', () => {
 });
 
 describe.each([
-  [1000, 2, 1, 1],
-  [1000, 2, 3, 1],
-  [1000, 2, .5, 1],
-  [1000, 2, .5, 0.1],
-  [1000, 2, 1.5, 10],
-  [1000, 3, 4, 1.5],
-  [1000, 3, .4, 0.7],
-  [1000, 10, .4, 0.7],
-  [1000, 10, 4, 0.8],
+  [5000, 2, 1, 1],
+  [5000, 2, 3, 1],
+  [5000, 2, .5, 1],
+  [5000, 2, .5, 0.1],
+  [5000, 2, 1.5, 10],
+  [5000, 3, 4, 1.5],
+  [5000, 3, .4, 0.7],
+  [5000, 10, .4, 0.7],
+  [5000, 10, 4, 0.8],
 ])('scaledDirichlet(%i, %f, %f, %f)', (n, k, a, scale) => {
   const x = scaledDirichlet([n], k, a, scale);
 
@@ -31,6 +31,23 @@ describe.each([
     expectTensorsClose(x.mean(0), tf.fill([k], 1 / k), 0.1);
     const stdExp = scale * Math.sqrt((k-1) / k**2 / (k * a + 1));
     expectTensorsClose(std(x, 0), tf.fill([k], stdExp), 0.1)
+  });
+});
+
+
+describe.each([
+  [[[0.1]]],
+  [[[-.5]]],
+  [[[0.2], [0.1], [-0.3]]],
+])('sphericalToCartesian(%o) for 2d vectors', (phi) => {
+  function getExpected(phi) {
+    return tf.tensor(phi.map(x => [Math.cos(x[0]), Math.sin(x[0])]));
+  }
+
+  const x = sphericalToCartesian(tf.tensor(phi));
+
+  test('output has expected value', () => {
+    expectTensorsClose(x, getExpected(phi), 0.0001);
   });
 });
 
