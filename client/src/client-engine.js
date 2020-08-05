@@ -171,7 +171,7 @@ function scaledDirichlet(shape, k, a, scale=1) {
 }
 
 /**
- * Converts n-dimensional spherical coordniates to cartesian coordinates. 
+ * Converts spherical to cartesian coordinates in n dimensions. 
  * The resulting vectors will be on a unit sphere.
  * See https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates.
  *
@@ -202,6 +202,39 @@ function sphericalToCartesian(phi) {
     return x;
 }
 
+/**
+ * Converts cartesian to spherical coordinates in n dimensions. 
+ * The resulting r is ignored, as if the input were on the unit sphere.
+ * See https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates.
+ *
+ * @param x a tensor [size, n] of cartesian n-dimensional vectors.
+ * @returns a tensor [size, n-1] of angles phi, such that 
+ * phi[0:n-2] is in [0, pi], phi[n-1] is in [-pi, pi].
+ */
+function cartesianToSpherical(x) {
+  const n = x.shape[1]; // Dimentionality
+
+  const x2 = tf.reverse(tf.square(x), 1);
+  const cn = tf.reverse(tf.sqrt(tf.cumsum(x2, 1)), 1);
+  const epsilon = 1e-10;
+  const xn = tf.div(
+    x.slice([0, 0], [-1,  n - 1]).add(epsilon),
+    cn.slice([0, 0], [-1,  n - 1]).add(epsilon));
+
+  const phi = tf.acos(xn).split([n-2, 1], 1);
+
+  /*
+  The description in wikipedia boils down to changing the sign of the  phi_(n-1) (using 1-based indexing)
+  if and only if
+  1. there is no k such that x_k != 0 and all x_i == 0 for i > k
+  and
+  2. x_n < 0
+  */
+  let s = x.slice([0, n-1], [-1, 1]).less(0).sub(0.5).mul(-2);
+  phi[1] = phi[1].mul(s);
+  return tf.concat(phi, 1);
+}
+
 // TODO(ia): some functions here are exported only for tests.
 // How to avoid this namespace clutter?
-export { Engine, scaledDirichlet, sphericalToCartesian }
+export { Engine, scaledDirichlet, sphericalToCartesian, cartesianToSpherical }

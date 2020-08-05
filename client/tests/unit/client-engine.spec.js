@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 tf.setBackend('cpu')
 
-import { scaledDirichlet, sphericalToCartesian } from '@/client-engine'
+import { scaledDirichlet, sphericalToCartesian, cartesianToSpherical } from '@/client-engine'
 
 test('tensorflow installed correctly', () => {
   const t = tf.tensor1d([1, 2, 3]);
@@ -71,6 +71,22 @@ describe.each([
   });
 });
 
+describe.each([
+  [[[0.5, 1]]],
+  [[[-0.1, 0.3]]],
+  [[[0, 0.3]]],
+  [[[0, -0.3]]],
+  // [[[0.2, -0.3], [-0.01, 0], [-0.7, 0]]],
+])('cartesianToSpherical(%o)', (x) => {
+
+  const phi = cartesianToSpherical(tf.tensor(x));
+
+  test('output has expected value', () => {
+    const phiExp = tf.tensor(x.map((e) => cartesianToSphericalSimple(e)));
+    expectTensorsClose(phi, phiExp, 0.0001);
+  });
+});
+
 /**
  * Check if tensors are close. Is needed as tf.test_util.expectArraysClose()
  * always succeedes with tensor arguments.
@@ -100,4 +116,40 @@ function std(x, axis=null) {
   const xc = tf.sub(x, m)
   const x2 = tf.square(xc)
   return tf.sqrt(tf.div(tf.sum(x2, axis), n));
+}
+
+function norm(x) {
+  return Math.sqrt(x.reduce((s, v) => s + v*v, 0));
+}
+
+function cartesianToSphericalSimple(x) {
+    const n = x.length;
+    const phi = Array(n - 1).fill(0);
+    let k = -1;
+    for (let i = n - 1; i > -1; --i) {
+        if(x[i] != 0) {
+            k = i;
+            break;
+        }
+    }
+    if(k == -1) {
+      return phi;
+    }
+    console.log(x, n, k, norm(x));
+
+    for(let i = 0; i < k; ++i) {
+        phi[i] = Math.acos(x[i] / norm(x.slice(i)));
+    }
+
+    if (k == n - 1) {
+        phi[n - 2] = Math.acos(x[n-2] / norm(x.slice(-2)));
+        if (x[n-1] < 0) {
+            phi[n - 2] *= -1;
+        }
+    }
+    else {
+        phi[k] = x[k] > 0 ? 0 : Math.pi;
+    }
+
+    return phi;
 }
