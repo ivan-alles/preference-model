@@ -147,13 +147,13 @@ class Engine {
  * Sample from a symmetric Dirichlet distribution of dimension k and parameter a,
  * scaled around its mean.
  *
+ * @param shape output shape, the output will have a shape of [shape, k]. 
  * @param k dimensionality.
  * @param a concentration parameter in [eps, +inf]. eps shall be > 0.01 or so to avoid nans.
- * @param shape output shape, the output will have a shape of [shape, k]. 
  * @param scale scale: scale factor.
  * @returns a tensor of shape [shape, k].
  */
-function scaledDirichlet(k, a, shape, scale=1) {
+function scaledDirichlet(shape, k, a, scale=1) {
   // Use the gamma distribution to sample from a Dirichlet distribution.
   // See https://en.wikipedia.org/wiki/Dirichlet_distribution
 
