@@ -114,10 +114,8 @@ describe('Cartesian and spherical back and forth', () => {
       expectTensorsEqual(phiParts[0].greaterEqual(0), tf.onesLike(phiParts[0]));
       expectTensorsEqual(phiParts[0].lessEqual(Math.PI), tf.onesLike(phiParts[0]));
 
-      if(n > 2) {
-        expectTensorsEqual(phiParts[1].greaterEqual(0), tf.onesLike(phiParts[1]));
-        expectTensorsEqual(phiParts[1].lessEqual(2 * Math.PI), tf.onesLike(phiParts[1]));
-      }
+      expectTensorsEqual(phiParts[1].greaterEqual(-Math.PI), tf.onesLike(phiParts[1]));
+      expectTensorsEqual(phiParts[1].lessEqual(Math.PI), tf.onesLike(phiParts[1]));
     });
 
     test('converted back x1 is close to the original x', () => {
@@ -184,7 +182,7 @@ function cartesianToSphericalSimple(x) {
     if (k == n - 1) {
         phi[n - 2] = Math.acos(x[n-2] / norm(x.slice(-2)));
         if (x[n-1] < 0) {
-            phi[n - 2] = 2 * Math.PI - phi[n - 2];
+            phi[n - 2] *= -1;
         }
     }
     else {

@@ -176,8 +176,8 @@ function scaledDirichlet(shape, k, a, scale=1) {
  * See https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates.
  *
  * @param phi a tensor [size, n-1] of angles.
- *  phi[0:n-2] vary in range [0, pi], 
- *  phi[n-1] in [0, 2*pi] or in [-pi, pi].
+ *  phi[0:n-2] is in [0, pi], 
+ *  phi[n-1] is in [-pi, pi].
  * @returns a tensor [size, n] of n-dimensional unit vectors.
  */
 function sphericalToCartesian(phi) {
@@ -223,11 +223,17 @@ function cartesianToSpherical(x) {
 
   const phi = tf.acos(xn).split([n-2, 1], 1);
 
-  let s = x.slice([0, n-1], [-1, 1]).less(0); // Check if the last column of x < 0
-  phi[1] = tf.sub(
-    s.mul(Math.PI * 2), // 2pi if last x < 0, otherwise 0
-    phi[1].mul(s.mul(2).sub(1)) // 1 if last x < 0, otherwise -1
-  );
+  /*
+  The description in wikipedia boils down to changing the sign of the  phi_(n-1) 
+  (using 1-based indexing) if and only if
+  1. there is no k such that x_k != 0 and all x_i == 0 for i > k
+  and
+  2. x_n < 0
+  */
+
+  // -1 if last x < 0, otherwise 1
+  let s = x.slice([0, n-1], [-1, 1]).less(0).mul(-2).add(1); 
+  phi[1] = phi[1].mul(s);
   
   return tf.concat(phi, 1);
 }
