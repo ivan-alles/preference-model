@@ -76,7 +76,9 @@ describe.each([
   [[[-0.1, 0.3]]],
   [[[0, 0.3]]],
   [[[0, -0.3]]],
-  // [[[0.2, -0.3], [-0.01, 0], [-0.7, 0]]],
+  [[[-0.01, 0]]],
+  [[[2, 0]]],
+  [[[0.2, -0.3], [-0.01, 0], [0, 11]]],
 ])('cartesianToSpherical(%o)', (x) => {
 
   const phi = cartesianToSpherical(tf.tensor(x));
@@ -135,7 +137,6 @@ function cartesianToSphericalSimple(x) {
     if(k == -1) {
       return phi;
     }
-    console.log(x, n, k, norm(x));
 
     for(let i = 0; i < k; ++i) {
         phi[i] = Math.acos(x[i] / norm(x.slice(i)));
@@ -148,7 +149,7 @@ function cartesianToSphericalSimple(x) {
         }
     }
     else {
-        phi[k] = x[k] > 0 ? 0 : Math.pi;
+        phi[k] = x[k] > 0 ? 0 : Math.PI;
     }
 
     return phi;
