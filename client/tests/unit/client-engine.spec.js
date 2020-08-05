@@ -51,6 +51,26 @@ describe.each([
   });
 });
 
+describe.each([
+  [[[0.1, 0.2]]],
+  [[[-0.1, 0.3]]],
+  [[[0.2, -0.3], [-0.01, 0], [-0.7, 0]]],
+])('sphericalToCartesian(%o) for 3d vectors', (phi) => {
+  function getExpected(phi) {
+    return tf.tensor(phi.map(x => [
+      Math.cos(x[0]), 
+      Math.sin(x[0]) * Math.cos(x[1]),
+      Math.sin(x[0]) * Math.sin(x[1])
+    ]));
+  }
+
+  const x = sphericalToCartesian(tf.tensor(phi));
+
+  test('output has expected value', () => {
+    expectTensorsClose(x, getExpected(phi), 0.0001);
+  });
+});
+
 /**
  * Check if tensors are close. Is needed as tf.test_util.expectArraysClose()
  * always succeedes with tensor arguments.
