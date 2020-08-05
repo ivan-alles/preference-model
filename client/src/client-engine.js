@@ -223,15 +223,12 @@ function cartesianToSpherical(x) {
 
   const phi = tf.acos(xn).split([n-2, 1], 1);
 
-  /*
-  The description in wikipedia boils down to changing the sign of the  phi_(n-1) (using 1-based indexing)
-  if and only if
-  1. there is no k such that x_k != 0 and all x_i == 0 for i > k
-  and
-  2. x_n < 0
-  */
-  let s = x.slice([0, n-1], [-1, 1]).less(0).sub(0.5).mul(-2);
-  phi[1] = phi[1].mul(s);
+  let s = x.slice([0, n-1], [-1, 1]).less(0); // Check if the last column of x < 0
+  phi[1] = tf.sub(
+    s.mul(Math.PI * 2), // 2pi if last x < 0, otherwise 0
+    phi[1].mul(s.mul(2).sub(1)) // 1 if last x < 0, otherwise -1
+  );
+  
   return tf.concat(phi, 1);
 }
 

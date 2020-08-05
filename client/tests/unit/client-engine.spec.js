@@ -84,6 +84,8 @@ describe.each([
   [[[0.5, 1, 0]]],
   [[[1, 3, 1]]],
   [[[-1, -3, 1]]],
+  [[[-1, 1, 0]]],
+  [[[-1, 0, 0]]],
   [[[-2, 0, 1], [0, 0, 1]]],
 ])('cartesianToSpherical(%o)', (x) => {
 
@@ -97,26 +99,32 @@ describe.each([
 
 describe('Cartesian and spherical back and forth', () => {
 
-  const n = 3;
-  const size = 1;
-  const x = tf.tensor([[1, 2, 3].map((x) => x / norm([1, 2, 3]))]);
+  for(let t = 0; t < 100; ++t) {
+    const n = Math.floor(Math.random() * 10 + 2);
+    const size = Math.floor(Math.random() * 10 + 1);
+    let x = tf.randomUniform([size, n], -10, 10);
+    x = x.div(tf.sqrt(x.square().sum(1, true)));
 
-  const phi = cartesianToSpherical(x);
-  test('phi has correct shape and range', () => {
-    expect(phi.shape).toStrictEqual([size, n - 1]);
-    expectTensorsEqual(phi.greaterEqual(-Math.PI), tf.ones([size, n-1]));
-    expectTensorsEqual(phi.lessEqual(Math.PI), tf.ones([size, n-1]));
+    const phi = cartesianToSpherical(x);
+    test('phi has correct shape and range', () => {
+      expect(phi.shape).toStrictEqual([size, n - 1]);
 
-    if(n > 2) {
-      expectTensorsEqual(phi.slice([0, n-2], [-1, 1]).greaterEqual(0), tf.ones([size, 1]));
-      expectTensorsEqual(phi.slice([0, n-2], [-1, 1]).lessEqual(Math.PI), tf.ones([size, 1]));
-    }
-  });
+      const phiParts = phi.split([n-2, 1], 1);
 
-  test('converted back x1 is close to the original x', () => {
-    const x1 = sphericalToCartesian(phi);
-    expectTensorsClose(x1, x, 0.00001);
-  });
+      expectTensorsEqual(phiParts[0].greaterEqual(0), tf.onesLike(phiParts[0]));
+      expectTensorsEqual(phiParts[0].lessEqual(Math.PI), tf.onesLike(phiParts[0]));
+
+      if(n > 2) {
+        expectTensorsEqual(phiParts[1].greaterEqual(0), tf.onesLike(phiParts[1]));
+        expectTensorsEqual(phiParts[1].lessEqual(2 * Math.PI), tf.onesLike(phiParts[1]));
+      }
+    });
+
+    test('converted back x1 is close to the original x', () => {
+      const x1 = sphericalToCartesian(phi);
+      expectTensorsClose(x1, x, 0.001);
+    });
+  }
 
 });
 
@@ -176,7 +184,7 @@ function cartesianToSphericalSimple(x) {
     if (k == n - 1) {
         phi[n - 2] = Math.acos(x[n-2] / norm(x.slice(-2)));
         if (x[n-1] < 0) {
-            phi[n - 2] *= -1;
+            phi[n - 2] = 2 * Math.PI - phi[n - 2];
         }
     }
     else {
