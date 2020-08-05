@@ -95,6 +95,31 @@ describe.each([
   });
 });
 
+describe('Cartesian and spherical back and forth', () => {
+
+  const n = 3;
+  const size = 1;
+  const x = tf.tensor([[1, 2, 3].map((x) => x / norm([1, 2, 3]))]);
+
+  const phi = cartesianToSpherical(x);
+  test('phi has correct shape and range', () => {
+    expect(phi.shape).toStrictEqual([size, n - 1]);
+    expectTensorsEqual(phi.greaterEqual(-Math.PI), tf.ones([size, n-1]));
+    expectTensorsEqual(phi.lessEqual(Math.PI), tf.ones([size, n-1]));
+
+    if(n > 2) {
+      expectTensorsEqual(phi.slice([0, n-2], [-1, 1]).greaterEqual(0), tf.ones([size, 1]));
+      expectTensorsEqual(phi.slice([0, n-2], [-1, 1]).lessEqual(Math.PI), tf.ones([size, 1]));
+    }
+  });
+
+  test('converted back x1 is close to the original x', () => {
+    const x1 = sphericalToCartesian(phi);
+    expectTensorsClose(x1, x, 0.00001);
+  });
+
+});
+
 /**
  * Check if tensors are close. Is needed as tf.test_util.expectArraysClose()
  * always succeedes with tensor arguments.
