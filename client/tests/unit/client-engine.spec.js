@@ -14,9 +14,8 @@ describe('PreferenceModel', () => {
   const model = new PreferenceModel(SHAPE);
 
   test('initially generate random values', () => {
-    expect(model.isRandom()).toStrictEqual(true);
+    expect(model.isRandom).toStrictEqual(true);
   });
-
 
   test('Shape and size of random values', () => {
     let x = model.generate(1, 0);

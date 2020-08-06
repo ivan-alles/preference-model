@@ -58,8 +58,8 @@ class PreferenceModel {
       this.trainingExamples = [];
   }
 
-  isRandom() {
-      return this.trainingExamples.length == 0;
+  get isRandom() {
+    return this.trainingExamples.length == 0;
   }
 
   train(self, trainingExamples) {
@@ -68,14 +68,16 @@ class PreferenceModel {
   }
 
   generate(count, variance) {
-      if (this.isRandom) {
-        // Sample uniform random points on n-sphere.
-        // See https://mathworld.wolfram.com/HyperspherePointPicking.html
-        // Do not normalize the length, as we will only work with the angles.
-        return tf.randomNormal([count, 512]);
-      }
-      const latents = [count, variance];
-      return latents;
+    if (this.isRandom) {
+      // Sample uniform random points on n-sphere.
+      // See https://mathworld.wolfram.com/HyperspherePointPicking.html
+      // Do not normalize the length, as we will only work with the angles.
+      return tf.randomNormal([count, 512]);
+    }
+
+
+    const latents = [count, variance];
+    return latents;
   }
 }
 
