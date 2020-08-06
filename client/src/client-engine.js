@@ -10,9 +10,7 @@ class Generator {
   }
 
   async init() {
-    console.log(`Loading model ${MODEL_URL} ...`)
     this.model = await loadGraphModel(MODEL_URL);
-    console.log('Model loaded')
   }
 
   /**
@@ -22,8 +20,6 @@ class Generator {
    * @returns an array of pictures.
    */
   async generate(latents) {
-    console.log(`Generator.generate(), this.model ${this.model}`)
-
     const count = latents.shape[0];
 
     let output = this.model.predict(latents);
@@ -53,10 +49,7 @@ class PreferenceModel {
   }
 
   get isRandom() {
-    console.log("isRandom", this.trainingExamples);
-    const r = this.trainingExamples.shape[0] === 0;
-    console.log("isRandom end", this.trainingExamples);
-    return r;
+    return this.trainingExamples.shape[0] === 0;
   }
   
   /**
@@ -65,14 +58,12 @@ class PreferenceModel {
    * (regardless of the shape), revert to uniform random generator.
    */
   train(trainingExamples) {
-    console.log("train");
     this.trainingExamples = trainingExamples;
     // this.r0 = -5;
   }
 
   generate(count, variance) {
     if (this.isRandom) {
-      console.log('Generate random');
       // Sample uniform random points on n-sphere.
       // See https://mathworld.wolfram.com/HyperspherePointPicking.html
       // Do not normalize the length, as we will only work with the angles.
@@ -99,7 +90,6 @@ class PreferenceModel {
 
     let outputPhi = null;
     if (k == 1) {
-      console.log('Generate from one training example');
       // Only one training example, it will be varied later by a normal "noise".
       outputPhi = phi.broadcastTo([count, phi.shape[1]]);
     }
@@ -109,10 +99,7 @@ class PreferenceModel {
 
     // Convert back [-pi, pi] -> [0, pi].
     outputPhi = outputPhi.add(b).div(a);
-
-    console.log('sphericalToCartesian()', outputPhi.shape);
     const output = sphericalToCartesian(outputPhi);
-    console.log('generate() end');
     return output;
   }
 }
@@ -123,7 +110,6 @@ class PreferenceModel {
  */
 class Engine {
   constructor () {
-    console.log('Client Engine')
     this.generator = new Generator();
     this.preferenceModel = new PreferenceModel();
     this.initDone = false; // TODO(ia): this shall be no more necessary
@@ -132,7 +118,6 @@ class Engine {
   async init() {
     await this.generator.init();
     this.initDone = true;
-    console.log('Engine.init() done')
   }
 
   async getPictures(count, variance) {
