@@ -75,6 +75,16 @@ class PreferenceModel {
       return tf.randomNormal([count, 512]);
     }
 
+    // For variance from 0 to 4
+    // a, scale, std
+    const params = [
+        (10, 1, .02),
+        (3, 1, .03),
+        (1, 1, .05),    // Middle range - a uniform dist. in convex combination of training examples
+        (1, 1.5, .07),  // Start going outside of the convex combination of training examples
+        (1.2, 2.0, .1)  // Concentrate in the middle, as the values at the boarder have little visual difference
+    ][variance];
+
 
     const latents = [count, variance];
     return latents;
@@ -219,11 +229,13 @@ function cartesianToSpherical(x) {
   const x2 = tf.reverse(tf.square(x), 1);
   const cn = tf.reverse(tf.sqrt(tf.cumsum(x2, 1)), 1);
   const epsilon = 1e-10;
+  // First n-1 columns and the last column.
+  const xParts = x.split([n-1, 1], 1);
   const xn = tf.div(
-    x.slice([0, 0], [-1,  n - 1]).add(epsilon),
+    xParts[0].add(epsilon),
     cn.slice([0, 0], [-1,  n - 1]).add(epsilon));
 
-  const phi = tf.acos(xn).split([n-2, 1], 1);
+  const phiParts = tf.acos(xn).split([n-2, 1], 1);
 
   /*
   The description in wikipedia boils down to changing the sign of the  phi_(n-1) 
@@ -233,11 +245,11 @@ function cartesianToSpherical(x) {
   2. x_n < 0
   */
 
-  // -1 if last x < 0, otherwise 1
-  let s = x.slice([0, n-1], [-1, 1]).less(0).mul(-2).add(1); 
-  phi[1] = phi[1].mul(s);
+  // -1 if last column of x < 0, otherwise 1
+  let s = xParts[1].less(0).mul(-2).add(1); 
+  phiParts[1] = phiParts[1].mul(s);
   
-  return tf.concat(phi, 1);
+  return tf.concat(phiParts, 1);
 }
 
 // TODO(ia): some functions here are exported only for tests.
