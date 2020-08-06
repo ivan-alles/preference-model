@@ -228,14 +228,16 @@ function cartesianToSpherical(x) {
 
   const x2 = tf.reverse(tf.square(x), 1);
   const cn = tf.reverse(tf.sqrt(tf.cumsum(x2, 1)), 1).slice([0, 0], [-1,  n - 1]);
-  const epsilon = 1e-10;
   // First n-1 columns and the last column.
   const xParts = x.split([n-1, 1], 1);
-  const xn = tf.div(
-    xParts[0].add(epsilon),
-    cn.add(epsilon));
+  // Elements <= EPSILON will be set to 0.
+  const EPSILON = 1e-10;
+  const xn = xParts[0].div(cn.add(EPSILON));
 
-  const phiParts = tf.acos(xn).split([n-2, 1], 1);
+  let phi = tf.acos(xn);
+  // Reset elements <= EPSILON to 0.
+  phi = phi.mul(cn.greater(EPSILON));
+  const phiParts = phi.split([n-2, 1], 1);
 
   /*
   The description in wikipedia boils down to changing the sign of the  phi_(n-1) 
