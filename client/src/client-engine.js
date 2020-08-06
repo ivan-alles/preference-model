@@ -227,13 +227,13 @@ function cartesianToSpherical(x) {
   const n = x.shape[1]; // Dimentionality
 
   const x2 = tf.reverse(tf.square(x), 1);
-  const cn = tf.reverse(tf.sqrt(tf.cumsum(x2, 1)), 1);
+  const cn = tf.reverse(tf.sqrt(tf.cumsum(x2, 1)), 1).slice([0, 0], [-1,  n - 1]);
   const epsilon = 1e-10;
   // First n-1 columns and the last column.
   const xParts = x.split([n-1, 1], 1);
   const xn = tf.div(
     xParts[0].add(epsilon),
-    cn.slice([0, 0], [-1,  n - 1]).add(epsilon));
+    cn.add(epsilon));
 
   const phiParts = tf.acos(xn).split([n-2, 1], 1);
 
