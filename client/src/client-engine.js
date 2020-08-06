@@ -22,10 +22,14 @@ class Generator {
   async generate(latents) {
     const count = latents.shape[0];
 
-    let output = this.model.predict(latents);
-    output = tf.clipByValue(output, 0, 1.0);
-    // Convert to an array of tensors of shapes [1, H, W, 3]
-    const pictures = tf.split(output, count, 0); 
+    const pictures = tf.tidy(() => {
+      let output = this.model.predict(latents);
+      output = tf.clipByValue(output, 0, 1.0);
+      // Convert to an array of tensors of shapes [H, W, 3]
+      const pictures = output.unstack(0); 
+      return pictures;
+    });
+
     const pictureData = [];
 
     for(let i = 0; i < count; ++i) {
@@ -33,10 +37,10 @@ class Generator {
       // This is probably not efficient. We can optimize this by d
       // directly on a canvas in Vue and save CPU time.
       let canvas = document.createElement("canvas");
-      const picture = tf.squeeze(pictures[i]);
-      await tf.browser.toPixels(picture, canvas);
+      await tf.browser.toPixels(pictures[i], canvas);
       pictureData.push(canvas.toDataURL("image/png"));
     }
+    tf.dispose(pictures);
     return pictureData;
   }
 }
@@ -131,7 +135,7 @@ class Engine {
     const latentsTensor = this.preferenceModel.generate(count, variance);
     const latents = await latentsTensor.array();
     const pictures = await this.generator.generate(latentsTensor);
-
+    latentsTensor.dispose();
     const result = [];
     for(let i = 0; i < count; ++i) {
       result.push(
