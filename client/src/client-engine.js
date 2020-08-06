@@ -137,8 +137,8 @@ class Engine {
   async getPictures(count, variance) {
     
     const latentsTensor = this.preferenceModel.generate(count, variance);
+    const latents = await latentsTensor.array();
     const pictures = await this.generator.generate(latentsTensor);
-    const latents = tf.split(latentsTensor, count, 0); // Convert to array of 1d tensors.
 
     const result = [];
     for(let i = 0; i < count; ++i) {
@@ -154,7 +154,7 @@ class Engine {
   }
 
   async learn(likes) {
-    this.preferenceModel.train(tf.concat([...likes, tf.tensor([])]));
+    this.preferenceModel.train(tf.tensor(likes));
   }
 }
 
