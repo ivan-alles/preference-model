@@ -189,9 +189,6 @@ function scaledDirichlet(shape, k, a, scale=1) {
   return d;
 }
 
-let lowerTrig = null;
-let upperTrig = null;
-
 /**
  * Converts spherical to cartesian coordinates in n dimensions. 
  * The resulting vectors will be on a unit sphere.
@@ -206,33 +203,6 @@ function sphericalToCartesian(phi) {
     const size = phi.shape[0];  // Number of vectors
     const n = phi.shape[1] + 1; // Dimentionality
     const sin = tf.sin(phi);
-
-    if(lowerTrig === null || lowerTrig.shape[0] != n - 1) {
-      console.log("Creating trigs", n);
-      const lowerTrigBuffer = tf.buffer([n-1, n-1]);
-      const upperTrigBuffer = tf.buffer([n-1, n-1]);
-      for(let i = 0; i < n - 1; ++i) {
-        for(let j = 0; j <= i; ++j) {
-          lowerTrigBuffer.set(1, i, j);
-        }
-        for(let j = i + 1; j < n - 1; ++j) {
-          upperTrigBuffer.set(1, i, j);
-        }
-      }
-      lowerTrig = lowerTrigBuffer.toTensor();
-      upperTrig = upperTrigBuffer.toTensor();
-    }
-
-    let prodSin = sin.expandDims(1).broadcastTo([size, n - 1, n - 1]).
-      mul(lowerTrig).add(upperTrig).prod(2);
-    const cos = tf.cos(phi);
-    const ones = tf.ones([size, 1]);
-    const x = tf.mul(
-      tf.concat([ones, prodSin], 1),
-      tf.concat([cos, ones], 1)
-    );
-
-    /*
     let prodSin = tf.ones([size, n]);
     for(let i = 1; i < n; ++i) {
       const shifted = tf.concat([
@@ -241,11 +211,11 @@ function sphericalToCartesian(phi) {
       ], 1);
       prodSin = tf.mul(prodSin, shifted);
     }
+    const cos = tf.cos(phi);
     const x = tf.mul(
       prodSin,
       tf.concat([cos, tf.ones([size, 1])], 1)
     );
-    */
     return x;
 }
 
