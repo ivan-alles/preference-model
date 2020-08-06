@@ -240,4 +240,4 @@ function cartesianToSpherical(x) {
 
 // TODO(ia): some functions here are exported only for tests.
 // How to avoid this namespace clutter?
-export { Engine, scaledDirichlet, sphericalToCartesian, cartesianToSpherical }
+export { Engine, PreferenceModel, scaledDirichlet, sphericalToCartesian, cartesianToSpherical }

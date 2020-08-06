@@ -1,11 +1,31 @@
 import * as tf from '@tensorflow/tfjs';
 tf.setBackend('cpu')
 
-import { scaledDirichlet, sphericalToCartesian, cartesianToSpherical } from '@/client-engine'
+import { PreferenceModel, scaledDirichlet, sphericalToCartesian, cartesianToSpherical } from '@/client-engine'
 
 test('tensorflow installed correctly', () => {
   const t = tf.tensor1d([1, 2, 3]);
   expect(t.shape).toStrictEqual([3]);
+});
+
+const SHAPE=512;
+
+describe('PreferenceModel', () => {
+  const model = new PreferenceModel(SHAPE);
+
+  test('initially generate random values', () => {
+    expect(model.isRandom()).toStrictEqual(true);
+  });
+
+
+  test('Shape and size of random values', () => {
+    let x = model.generate(1, 0);
+    expect(x.shape).toStrictEqual([1, SHAPE]);
+
+    x = model.generate(3, 0);
+    expect(x.shape).toStrictEqual([3, SHAPE]);
+  });
+
 });
 
 describe.each([
