@@ -12,6 +12,7 @@ const SHAPE=512;
 
 describe('PreferenceModel', () => {
   const model = new PreferenceModel(SHAPE);
+  model.init();
 
   test('initially generate random values', () => {
     expect(model.isRandom).toStrictEqual(true);

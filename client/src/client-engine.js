@@ -44,8 +44,16 @@ class Generator {
 class PreferenceModel {
   constructor(shape=512) {
       this.shape = shape;
-      // Learnable parameters
-      this.trainingExamples = tf.tensor([]);
+  }
+
+  init() {
+    this.trainingExamples = tf.tensor([]);
+    const cols = this.shape - 1;
+
+    // Convert [0, pi] <-> [-pi, pi] for all but the last column of angles
+    // (it's already so)
+    this.const2 = tf.tensor(Array(cols - 1).fill(2).concat(1), [1, cols]);
+    this.constPi = tf.tensor(Array(cols - 1).fill(Math.PI).concat(0), [1, cols]);
   }
 
   get isRandom() {
@@ -82,11 +90,8 @@ class PreferenceModel {
 
     const k = this.trainingExamples.shape[0];
     let phi = cartesianToSpherical(this.trainingExamples);
-    // Convert [0, pi] -> [-pi, pi] for all but the last column (it's already so)
-    const cols = phi.shape[1];
-    const a = tf.tensor(Array(cols - 1).fill(2).concat(1), [1, cols]);
-    const b = tf.tensor(Array(cols - 1).fill(Math.PI).concat(0), [1, cols]);
-    phi = phi.mul(a).sub(b);
+    // [0, pi] -> [-pi, pi]
+    phi = phi.mul(this.const2).sub(this.constPi);
 
     let outputPhi = null;
     if (k == 1) {
@@ -97,8 +102,8 @@ class PreferenceModel {
       throw Error("Not implemented");
     }
 
-    // Convert back [-pi, pi] -> [0, pi].
-    outputPhi = outputPhi.add(b).div(a);
+    // [-pi, pi] -> [0, pi].
+    outputPhi = outputPhi.add(this.constPi).div(this.const2);
     const output = sphericalToCartesian(outputPhi);
     return output;
   }
@@ -117,11 +122,12 @@ class Engine {
 
   async init() {
     await this.generator.init();
+    this.preferenceModel.init();
     this.initDone = true;
   }
 
   async getPictures(count, variance) {
-    
+    console.log("tf.memory", tf.memory());
     const latentsTensor = this.preferenceModel.generate(count, variance);
     const latents = await latentsTensor.array();
     const pictures = await this.generator.generate(latentsTensor);
