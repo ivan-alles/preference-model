@@ -25,6 +25,20 @@ describe('PreferenceModel', () => {
     expect(x.shape).toStrictEqual([3, SHAPE]);
   });
 
+  test('Train on one sample', () => {
+    model.train(tf.randomNormal([1, SHAPE]));
+    let x = model.generate(1, 0);
+    expect(x.shape).toStrictEqual([1, SHAPE]);
+    x = model.generate(3, 0);
+    expect(x.shape).toStrictEqual([3, SHAPE]);
+  });
+
+  test('Reset training', () => {
+    model.train(tf.tensor([]));
+    let x = model.generate(1, 0);
+    expect(x.shape).toStrictEqual([1, SHAPE]);
+  });
+
 });
 
 describe.each([
@@ -35,8 +49,8 @@ describe.each([
   [5000, 2, 1.5, 10],
   [5000, 3, 4, 1.5],
   [5000, 3, .4, 0.7],
-  [5000, 10, .4, 0.7],
-  [5000, 10, 4, 0.8],
+  [10000, 5, .4, 0.7],
+  [10000, 5, 4, 0.8],
 ])('scaledDirichlet(%i, %f, %f, %f)', (n, k, a, scale) => {
   const x = scaledDirichlet([n], k, a, scale);
 

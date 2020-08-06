@@ -2,12 +2,6 @@
 import * as tf from '@tensorflow/tfjs';
 import {loadGraphModel} from '@tensorflow/tfjs-converter';
 
-// TODO(ia): temp code begin.
-import axios from 'axios';
-const PICTURES_URL = 'http://localhost:5000/images';
-const LEARN_URL = 'http://localhost:5000/learn';
-// TODO(ia): temp code end.
-
 const MODEL_URL = '/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
 
 class Generator {
@@ -55,20 +49,31 @@ class PreferenceModel {
   constructor(shape=512) {
       this.shape = shape;
       // Learnable parameters
-      this.trainingExamples = [];
+      this.trainingExamples = tf.tensor([]);
   }
 
   get isRandom() {
-    return this.trainingExamples.length == 0;
+    console.log("isRandom", this.trainingExamples);
+    const r = this.trainingExamples.shape[0] === 0;
+    console.log("isRandom end", this.trainingExamples);
+    return r;
   }
-
-  train(self, trainingExamples) {
+  
+  /**
+   * Train model on given training examples.
+   * @param trainingExamples a tensor [size, this.shape]. If size === 0 
+   * (regardless of the shape), revert to uniform random generator.
+   */
+  train(trainingExamples) {
+    console.log("train");
+    trainingExamples.print();
     this.trainingExamples = trainingExamples;
     // this.r0 = -5;
   }
 
   generate(count, variance) {
     if (this.isRandom) {
+      console.log('Generate random');
       // Sample uniform random points on n-sphere.
       // See https://mathworld.wolfram.com/HyperspherePointPicking.html
       // Do not normalize the length, as we will only work with the angles.
@@ -85,9 +90,33 @@ class PreferenceModel {
         (1.2, 2.0, .1)  // Concentrate in the middle, as the values at the boarder have little visual difference
     ][variance];
 
+    const k = this.trainingExamples.shape[0];
+    let phi = cartesianToSpherical(this.trainingExamples);
+    // Convert [0, pi] -> [-pi, pi] for all but the last column (it's already so)
+    const cols = phi.shape[1];
+    const a = tf.tensor(Array(cols - 1).fill(2).concat(1), [1, cols]);
+    const b = tf.tensor(Array(cols - 1).fill(Math.PI).concat(0), [1, cols]);
+    a.print();
+    b.print();
+    phi = phi.mul(a).sub(b);
 
-    const latents = [count, variance];
-    return latents;
+    let outputPhi = null;
+    if (k == 1) {
+      console.log('Generate from one training example');
+      // Only one training example, it will be varied later by a normal "noise".
+      outputPhi = phi.broadcastTo([count, phi.shape[1]]);
+    }
+    else {
+      throw Error("Not implemented");
+    }
+
+    // Convert back [-pi, pi] -> [0, pi].
+    outputPhi = outputPhi.add(b).div(a);
+
+    console.log('sphericalToCartesian()', outputPhi.shape);
+    const output = sphericalToCartesian(outputPhi);
+    console.log('generate() end');
+    return output;
   }
 }
 
@@ -97,11 +126,6 @@ class Engine {
     this.generator = new Generator();
     this.preferenceModel = new PreferenceModel();
     this.initDone = false; // TODO(ia): this shall be no more necessary
-
-    // TODO(ia): temp code begin.
-    this.firstCall = true;
-    this.isRandom = true;
-    // TODO(ia): temp code end.
   }
 
   async init() {
@@ -127,32 +151,11 @@ class Engine {
     }
 
     return result;
-
-    // // TODO(ia): temp code begin.
-    // if(this.firstCall) {
-    //   this.firstCall = false;
-    //   // reset to random pictures.
-    //   await axios.post(LEARN_URL, []);
-    // }
-
-    // let result = await axios.get(PICTURES_URL, {
-    //     params: {
-    //         count: count,
-    //         variance: variance
-    //       }
-    //     }
-    //   );
-    // return result.data.images;
-    // // TODO(ia): temp code end.
   }
 
   async learn(likes) {
-    if(!this.initDone)
-      return;
-    // TODO(ia): temp code begin.
-    this.isRandom = likes.length === 0;
-    await axios.post(LEARN_URL, likes);  }
-    // TODO(ia): temp code end.
+    this.preferenceModel.train(tf.concat([...likes, tf.tensor([])]));
+  }
 }
 
 /**
