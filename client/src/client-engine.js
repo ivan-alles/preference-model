@@ -202,18 +202,19 @@ function scaledDirichlet(shape, k, a, scale=1) {
 function sphericalToCartesian(phi) {
     const size = phi.shape[0];  // Number of vectors
     const n = phi.shape[1] + 1; // Dimentionality
-    const sin = tf.sin(phi);
-    let prodSin = tf.ones([size, n]);
-    for(let i = 1; i < n; ++i) {
-      const shifted = tf.concat([
-        tf.ones([size, i]), 
-        sin.slice([0, 0], [size, n - i])
-      ], 1);
-      prodSin = tf.mul(prodSin, shifted);
+    const sin = tf.sin(phi).arraySync();
+    let prodSinBuffer = tf.buffer([size, n]);
+    for(let i = 0; i < size; ++i) {
+      let p = 1;
+      prodSinBuffer.set(p, i, 0);
+      for(let j = 0; j < n-1; ++j) {
+        p *= sin[i][j];
+        prodSinBuffer.set(p, i, j+1);
+      }
     }
     const cos = tf.cos(phi);
     const x = tf.mul(
-      prodSin,
+      prodSinBuffer.toTensor(),
       tf.concat([cos, tf.ones([size, 1])], 1)
     );
     return x;
