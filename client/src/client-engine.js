@@ -120,6 +120,10 @@ class PreferenceModel {
   }
 }
 
+/**
+ * Combines alogrithms to implement application logic.
+ * Converts the data between UI (plain javascript) to internal representations (tf.tensors).
+ */
 class Engine {
   constructor () {
     console.log('Client Engine')
