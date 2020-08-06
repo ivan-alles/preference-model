@@ -66,7 +66,6 @@ class PreferenceModel {
    */
   train(trainingExamples) {
     console.log("train");
-    trainingExamples.print();
     this.trainingExamples = trainingExamples;
     // this.r0 = -5;
   }
@@ -96,8 +95,6 @@ class PreferenceModel {
     const cols = phi.shape[1];
     const a = tf.tensor(Array(cols - 1).fill(2).concat(1), [1, cols]);
     const b = tf.tensor(Array(cols - 1).fill(Math.PI).concat(0), [1, cols]);
-    a.print();
-    b.print();
     phi = phi.mul(a).sub(b);
 
     let outputPhi = null;
