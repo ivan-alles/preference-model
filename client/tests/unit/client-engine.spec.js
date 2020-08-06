@@ -97,6 +97,7 @@ describe.each([
   [[[0, -0.3]]],
   [[[-0.01, 0]]],
   [[[2, 0]]],
+  [[[-2, 0]]],
   [[[0.2, -0.3], [-0.01, 0], [0, 11]]],
   [[[0.5, 1, 2]]],
   [[[0.5, 1, -2]]],
@@ -104,6 +105,8 @@ describe.each([
   [[[1, 3, 1]]],
   [[[-1, -3, 1]]],
   [[[-1, 1, 0]]],
+  [[[-1, -1, 0]]],
+  [[[ 1, 0, 0]]],
   [[[-1, 0, 0]]],
   [[[-2, 0, 1], [0, 0, 1]]],
 ])('cartesianToSpherical(%o)', (x) => {
@@ -119,7 +122,7 @@ describe.each([
 describe('Cartesian and spherical back and forth', () => {
 
   for(let t = 0; t < 100; ++t) {
-    const n = Math.floor(Math.random() * 10 + 2);
+    const n = Math.floor(Math.random() * 4 + 2);
     const size = Math.floor(Math.random() * 10 + 1);
     let x = tf.randomUniform([size, n], -10, 10);
     x = x.div(tf.sqrt(x.square().sum(1, true)));
