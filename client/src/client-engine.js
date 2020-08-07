@@ -2,7 +2,7 @@
 import * as tf from '@tensorflow/tfjs';
 import {loadGraphModel} from '@tensorflow/tfjs-converter';
 
-const MODEL_URL = '/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
+let MODEL_URL = "https://github.com/ivan-alles/preference-model/releases/download/0.1/model.json";
 
 // TODO: rename count -> size everywhere
 
@@ -12,6 +12,9 @@ class Generator {
   }
 
   async init() {
+    if (process.env.NODE_ENV !== "production" ) {
+      MODEL_URL = '/karras2018iclr-celebahq-1024x1024.tfjs/model.json';      
+    }
     this.model = await loadGraphModel(MODEL_URL);
   }
 
@@ -132,7 +135,7 @@ class PreferenceModel {
  */
 class Engine {
   constructor () {
-    if (process.env.NODE_ENV == "production" ) {
+    if (process.env.NODE_ENV === "production" ) {
       console.log("Production mode");
       tf.enableProdMode();
     }
