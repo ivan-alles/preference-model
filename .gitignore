@@ -14,7 +14,8 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+# Temporarily comment out to commit client dist. TODO(ia): move python to a subfolder.
+# dist/
 downloads/
 eggs/
 .eggs/
