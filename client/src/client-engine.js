@@ -4,6 +4,8 @@ import {loadGraphModel} from '@tensorflow/tfjs-converter';
 
 const MODEL_URL = '/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
 
+// TODO: rename count -> size everywhere
+
 class Generator {
   constructor() {
     this.model = null;
@@ -82,7 +84,6 @@ class PreferenceModel {
   train(trainingExamples) {
     tf.dispose(this.trainingExamples);
     this.trainingExamples = trainingExamples;
-    // this.r0 = -5;
   }
 
   generate(count, variance) {
@@ -105,7 +106,15 @@ class PreferenceModel {
       outputPhi = phi.broadcastTo([count, phi.shape[1]]);
     }
     else {
-      throw Error("Not implemented");
+      // Random coefficients of shape (count, k, 1)
+      const r = scaledDirichlet([count], k, varianceParams[0], varianceParams[1]).expandDims(2);
+      // Sines and cosines of shape (count, k, 511)
+      let sin = tf.sin(phi).broadcastTo([count, ...phi.shape]);
+      let cos = tf.cos(phi).broadcastTo([count, ...phi.shape]);
+      sin = sin.mul(r);
+      cos = cos.mul(r);
+      // Linear combinations of shape (count, 511)
+      outputPhi = tf.atan2(sin.sum(1), cos.sum(1));
     }
 
     outputPhi = outputPhi.add(tf.randomNormal(outputPhi.shape, 0, varianceParams[2]));
