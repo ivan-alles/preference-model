@@ -132,19 +132,25 @@ class PreferenceModel {
  */
 class Engine {
   constructor () {
+    if (process.env.NODE_ENV == "production" ) {
+      console.log("Production mode");
+      tf.enableProdMode();
+    }
+    else {
+      console.log("Development mode");
+    }
+
     this.generator = new Generator();
     this.preferenceModel = new PreferenceModel();
-    this.initDone = false; // TODO(ia): this shall be no more necessary
   }
 
   async init() {
     await this.generator.init();
     this.preferenceModel.init();
-    this.initDone = true;
   }
 
   async getPictures(count, variance) {
-    console.log("tf.memory", tf.memory());
+    // console.log("tf.memory", tf.memory());
     const latentsTensor = tf.tidy(() => this.preferenceModel.generate(count, variance));
     const pictures = await this.generator.generate(latentsTensor);
     const latents = await latentsTensor.array();
