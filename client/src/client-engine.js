@@ -34,7 +34,7 @@ class Generator {
 
     for(let i = 0; i < count; ++i) {
       // TODO(ia): we draw the picture and then convert it into PNG.
-      // This is probably not efficient. We can optimize this by d
+      // This is probably not efficient. We can optimize this by drawing
       // directly on a canvas in Vue and save CPU time.
       let canvas = document.createElement("canvas");
       await tf.browser.toPixels(pictures[i], canvas);
@@ -70,6 +70,7 @@ class PreferenceModel {
    * (regardless of the shape), revert to uniform random generator.
    */
   train(trainingExamples) {
+    tf.dispose(this.trainingExamples);
     this.trainingExamples = trainingExamples;
     // this.r0 = -5;
   }
@@ -132,9 +133,9 @@ class Engine {
 
   async getPictures(count, variance) {
     console.log("tf.memory", tf.memory());
-    const latentsTensor = this.preferenceModel.generate(count, variance);
-    const latents = await latentsTensor.array();
+    const latentsTensor = tf.tidy(() => this.preferenceModel.generate(count, variance));
     const pictures = await this.generator.generate(latentsTensor);
+    const latents = await latentsTensor.array();
     latentsTensor.dispose();
     const result = [];
     for(let i = 0; i < count; ++i) {
@@ -172,11 +173,6 @@ function scaledDirichlet(shape, k, a, scale=1) {
   const x = tf.div(y, y.sum(-1, true));
   const mean = 1 / k;
   const d = tf.add(tf.mul(tf.sub(x, mean), scale), mean);
-
-  // y = rng.gamma(np.full(k, a), size=size + (k,))
-  // x = y / y.sum(axis=-1, keepdims=True)
-  // mean = 1. / k
-  // return (x - mean) * scale + mean
 
   return d;
 }
