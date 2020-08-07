@@ -48,6 +48,16 @@ class Generator {
 class PreferenceModel {
   constructor(shape=512) {
       this.shape = shape;
+
+      // For variance from 0 to 4
+      // a, scale, std
+      this.VARIANCE_PARAMS = [
+        [10, 1, .02],
+        [3, 1, .03],
+        [1, 1, .05],    // Middle range - a uniform dist. in convex combination of training examples
+        [1, 1.5, .07],  // Start going outside of the convex combination of training examples
+        [1.2, 2.0, .1]  // Concentrate in the middle, as the values at the boarder have little visual difference
+      ];
   }
 
   init() {
@@ -82,16 +92,7 @@ class PreferenceModel {
       // Do not normalize the length, as we will only work with the angles.
       return tf.randomNormal([count, 512]);
     }
-
-    // For variance from 0 to 4
-    // a, scale, std
-    const params = [
-        (10, 1, .02),
-        (3, 1, .03),
-        (1, 1, .05),    // Middle range - a uniform dist. in convex combination of training examples
-        (1, 1.5, .07),  // Start going outside of the convex combination of training examples
-        (1.2, 2.0, .1)  // Concentrate in the middle, as the values at the boarder have little visual difference
-    ][variance];
+    const varianceParams = this.VARIANCE_PARAMS[variance];
 
     const k = this.trainingExamples.shape[0];
     let phi = cartesianToSpherical(this.trainingExamples);
@@ -106,6 +107,8 @@ class PreferenceModel {
     else {
       throw Error("Not implemented");
     }
+
+    outputPhi = outputPhi.add(tf.randomNormal(outputPhi.shape, 0, varianceParams[2]));
 
     // [-pi, pi] -> [0, pi].
     outputPhi = outputPhi.add(this.constPi).div(this.const2);
