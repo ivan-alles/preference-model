@@ -3,9 +3,7 @@ import VueRouter from 'vue-router'
 import { BootstrapVue, IconsPlugin, FormInputPlugin } from 'bootstrap-vue'
 import Home from '../views/Home.vue'
 
-
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import '../custom.scss'
 
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
