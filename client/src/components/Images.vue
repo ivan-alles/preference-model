@@ -1,7 +1,7 @@
 <template>
   <b-container>
     <div>
-      <h1>Learn What You Like From Your Likes</h1>
+      <h1>Make a Person of Your Dreams</h1>
     </div>
     <div id="stickyHeader">
       <span id="learn-wrapper" class="d-inline-block" tabindex="0">
