@@ -139,8 +139,12 @@ export default {
         await this.engine.init();
         for(;;) {
           try {
+            await sleep(50);
+
+            if(!this.isActive) {
+              continue;
+            }
             if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-              await sleep(50);
               continue;
             }
             if(this.isLearningTriggered) {
@@ -223,6 +227,7 @@ export default {
     }
   },
   created() {
+    this.isActive = true;
     this.cells = [];
     this.isRandomTriggered = true;
     this.isLearningTriggered = false;
@@ -236,6 +241,14 @@ export default {
   beforeDestroy () {
     clearInterval(this.pollPicturesIntervalId)
   },
+
+  watch: {
+    $route(to, from) { // eslint-disable-line
+      // Activate this component when the router points to it.
+      this.isActive = to.name === "Home";
+    }
+  },
+
 };
 
 window.onscroll = function() {stickyHeader()};
