@@ -5,7 +5,7 @@
     </div>
     <div id="stickyHeader">
       <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-        <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">
+        <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled()" variant="primary">
           <b-icon icon="heart"></b-icon>
           Learn
         </b-button>
@@ -19,7 +19,7 @@
         </template>      
       </b-tooltip>
       <span id="random-wrapper" class="d-inline-block" tabindex="0">
-        <b-button @click="forgetLearning()" variant="secondary" :disabled="isRandom()">
+        <b-button @click="triggerRandom()" variant="secondary" :disabled="isRandom()">
           <b-icon icon="dice6" ></b-icon>
           Random
         </b-button>
@@ -132,19 +132,28 @@ export default {
         await this.engine.init();
         for(;;) {
           try {
-          await sleep(1000);
-          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-            continue;
-          }
-          const enginePictures = await this.engine.getPictures(1, this.varianceSlider);
-          for(let enginePicture of enginePictures) {
-            this.cells.push({
-              kind: cellKind.PICTURE,
-              picture: enginePicture.picture,
-              latents: enginePicture.latents,
-              liked: false,
-            });
-          }
+            if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
+              await sleep(50);
+              continue;
+            }
+            if(this.isLearningTriggered) {
+              this.isLearningTriggered = false;
+              await this.learn();
+            }
+            if(this.isRandomTriggered) {
+              this.isRandomTriggered = false;
+              await this.random();
+            }            
+            const enginePictures = await this.engine.getPictures(1, this.varianceSlider);
+            for(let enginePicture of enginePictures) {
+              this.cells.push({
+                kind: cellKind.PICTURE,
+                picture: enginePicture.picture,
+                latents: enginePicture.latents,
+                liked: false,
+              });
+            }
+            await sleep(1000);
           }
           catch(err) {
             console.error(err, err.stack);
@@ -152,7 +161,15 @@ export default {
         }
     },
 
-    async learnFromLikes() {
+    triggerLearning() {
+      this.isLearningTriggered = true;
+    },
+
+    triggerRandom() {
+      this.isRandomTriggered = true;
+    },
+
+    async learn() {
       const likes = this.findLikes();
 
       if (likes.length === 0) {
@@ -176,7 +193,8 @@ export default {
 
       await this.engine.learn(latents);
     },
-    async forgetLearning() {
+
+    async random() {
         this.cells.push({
           kind: cellKind.RANDOM
         });
@@ -186,9 +204,11 @@ export default {
     deleteAllPictures() {
         this.cells = [];
     },    
+
     toggleLike(cell) {
       cell.liked = !cell.liked;
     },
+
     relike(cell) {
       for(let like of cell.likes) {
           like.liked = true;
@@ -197,10 +217,8 @@ export default {
   },
   created() {
     this.cells = [];
-    this.cells.push({
-      kind: cellKind.RANDOM
-    });    
-
+    this.isRandomTriggered = true;
+    this.isLearningTriggered = false;
     this.engine = new Engine();
   },
 
