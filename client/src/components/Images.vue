@@ -5,7 +5,10 @@
     </div>
     <div id="stickyHeader">
       <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-        <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">Learn</b-button>
+        <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">
+          <b-icon icon="heart"></b-icon>
+          Learn
+        </b-button>
       </span>
       <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
         <template v-if="isLearningEnabled()">
@@ -16,7 +19,10 @@
         </template>      
       </b-tooltip>
       <span id="random-wrapper" class="d-inline-block" tabindex="0">
-        <b-button @click="forgetLearning()" variant="secondary" :disabled="isRandom()">Random</b-button>
+        <b-button @click="forgetLearning()" variant="secondary" :disabled="isRandom()">
+          <b-icon icon="dice6" ></b-icon>
+          Random
+        </b-button>
       </span>
       <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
         <template v-if="! isRandom()">
@@ -26,7 +32,10 @@
           Already making random pictures
         </template>      
       </b-tooltip>      
-      <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary" >Delete all</b-button>
+      <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary">
+        <b-icon icon="trash" ></b-icon>
+        Delete all
+      </b-button>
       <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
           Delete all pictures
       </b-tooltip>
