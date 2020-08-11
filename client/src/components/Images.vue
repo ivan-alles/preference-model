@@ -7,7 +7,7 @@
       <span id="learn-wrapper" class="d-inline-block" tabindex="0">
         <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">Learn</b-button>
       </span>
-      <b-tooltip target="learn-wrapper">
+      <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
         <template v-if="isLearningEnabled()">
           Learn from likes
         </template>
@@ -15,17 +15,41 @@
           Like some pictures to learn from them
         </template>      
       </b-tooltip>
-      <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
-      <b-button @click="deleteAllPictures()" variant="secondary" >Delete all pictures</b-button>
+      <span id="random-wrapper" class="d-inline-block" tabindex="0">
+        <b-button @click="forgetLearning()" variant="secondary" :disabled="isRandom()">Random</b-button>
+      </span>
+      <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
+        <template v-if="! isRandom()">
+          Forget learning and make random pictures
+        </template>
+        <template v-else>
+          Already making random pictures
+        </template>      
+      </b-tooltip>      
+      <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary" >Delete all</b-button>
+      <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
+          Delete all pictures
+      </b-tooltip>
       <b-container>
-          <b-row>
-            <b-col sm="1">
-              <label>Variance</label>
-            </b-col>
-            <b-col sm="3">
-              <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
-            </b-col>
-          </b-row>
+        <b-row>
+          <b-col sm="1">
+            <label>Variance</label>
+          </b-col>
+          <b-col sm="3" id="variance-slider">
+            <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
+          </b-col>
+          <!-- This does not work well, the tooltip remains visible all the time.
+          TODO(ia): try again after layout rework, delete if still not working.
+          <b-tooltip target="variance-slider" delay="{ show: 1000, hide: 50 }">
+            <template v-if="! isRandom()">
+              Vary pictures less or more
+            </template>
+            <template v-else>
+              Cannot vary random pictures, like some pictures and learn first
+            </template>      
+          </b-tooltip>           
+          -->
+        </b-row>
       </b-container>  
     </div>
     <canvas id="testCanvas" width="200" height="200" style="border:1px;" />
@@ -55,6 +79,7 @@
 </template>
 
 <script>
+
 // import { Engine } from '@/server-engine'
 import { Engine } from '@/client-engine'
 

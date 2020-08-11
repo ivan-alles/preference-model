@@ -63,6 +63,7 @@ class PreferenceModel {
         [1, 1.5, .07],  // Start going outside of the convex combination of training examples
         [1.2, 2.0, .1]  // Concentrate in the middle, as the values at the boarder have little visual difference
       ];
+      this.trainingExamples = null;
   }
 
   init() {
@@ -76,7 +77,7 @@ class PreferenceModel {
   }
 
   get isRandom() {
-    return this.trainingExamples.shape[0] === 0;
+    return this.trainingExamples === null || this.trainingExamples.shape[0] === 0;
   }
   
   /**
@@ -173,6 +174,11 @@ class Engine {
 
   async learn(likes) {
     this.preferenceModel.train(tf.tensor(likes));
+  }
+
+  get isRandom() {
+    return this.preferenceModel.isRandom;
+
   }
 }
 
