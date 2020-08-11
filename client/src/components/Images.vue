@@ -63,7 +63,7 @@
     </div>
     <div class="flex-container content">
       <div v-for="(cell, index) in cells" :key="index" class="cell">
-        <div v-if="cell.kind === cellKind.PICTURE" >
+        <template v-if="cell.kind === cellKind.PICTURE" >
           <img :src="cell.picture" class="picture">
             <span v-if="cell.liked">
               <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button"></b-icon>
@@ -71,22 +71,24 @@
             <span v-else>
               <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
             </span>
-        </div>
-        <div v-else-if="cell.kind === cellKind.LIKES" @click="relike(cell)">
+        </template>
+        <template v-else-if="cell.kind === cellKind.LIKES" @click="relike(cell)">
           <h4>
             <b-icon icon="dice6" ></b-icon>
             Likes
           </h4>
-          <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-div">
-            <img :src="picture" class="likes-picture">
+          <div class="likes-picture-row">
+            <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-col">
+              <img :src="picture" class="likes-picture">
+            </div>
           </div>
-        </div>   
-        <div v-else-if="cell.kind === cellKind.RANDOM">
+        </template>   
+        <template v-else-if="cell.kind === cellKind.RANDOM">
           <h4>
             <b-icon icon="dice6" ></b-icon>
             Random
           </h4>
-        </div>                
+        </template>                
       </div>
     </div>
   </b-container>
@@ -282,7 +284,7 @@ function sleep(ms) {
   margin: 5px;
   text-align: center;
   /* For like button positioning to work. */
-  position: relative; 
+  position: relative;
   border: 1px solid var(--secondary);
 } 
 
@@ -292,12 +294,18 @@ function sleep(ms) {
     object-fit: contain;
 }
 
-.likes-picture-div {
-    display: table-cell;
+.likes-picture-row {
+    display: flex;
+    justify-content: center;
+}
+
+.likes-picture-col {
+    /* Set to a value in [0.5, 1) for 1-picture case to fit the container. */
+    flex: 0.65;
 }
 
 .likes-picture {
-    max-width: 100%;
+    width: 100%;
 }
 
 .like-button 
