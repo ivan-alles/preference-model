@@ -4,7 +4,19 @@
       <h1>Learn What You Like From Your Likes</h1>
     </div>
     <div id="stickyHeader">
-      <b-button @click="learnFromLikes()" :disabled="findLikes().length == 0" variant="primary">Learn from likes</b-button>
+      <span id="learn-wrapper" class="d-inline-block" tabindex="0">
+      <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">Learn</b-button>
+      </span>
+      <span v-if="isLearningEnabled()">
+        <b-tooltip target="learn-wrapper" >
+          Learn from likes
+        </b-tooltip>
+      </span>
+      <span v-else>
+        <b-tooltip target="learn-wrapper" >
+          Like some pictures to learn from them
+        </b-tooltip>
+      </span>      
       <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
       <b-button @click="deleteAllPictures()" variant="secondary" >Delete all pictures</b-button>
       <b-container>
@@ -74,6 +86,11 @@ export default {
     findLikes() {
       let likes = this.cells.filter(cell => cell.kind === cellKind.PICTURE && cell.liked);
       return likes;
+    },
+
+    isLearningEnabled() {
+      // TODO(ia): shall this be a computed property?
+      return this.findLikes().length != 0;
     },
 
     /**
