@@ -74,7 +74,7 @@
         </template>
         <template v-else-if="cell.kind === cellKind.LIKES" @click="relike(cell)">
           <h4>
-            <b-icon icon="dice6" ></b-icon>
+            <b-icon icon="heart" ></b-icon>
             Likes
           </h4>
           <div class="likes-picture-row">
@@ -286,7 +286,14 @@ function sleep(ms) {
   /* For like button positioning to work. */
   position: relative;
   border: 1px solid var(--secondary);
+  border-radius: 4px;
+  box-shadow: 2px 2px 4px #0004;
 } 
+
+.cell h4 { 
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
 
 .picture {
     height: 100%;
