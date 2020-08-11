@@ -299,6 +299,7 @@ function sleep(ms) {
     height: 100%;
     width: 100%; 
     object-fit: contain;
+    border-radius: 4px;
 }
 
 .likes-picture-row {
