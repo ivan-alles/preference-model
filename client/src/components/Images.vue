@@ -66,7 +66,7 @@
         <template v-if="cell.kind === cellKind.PICTURE" >
           <img :src="cell.picture" class="picture">
             <span v-if="cell.liked">
-              <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button"></b-icon>
+              <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button liked"></b-icon>
             </span>
             <span v-else>
               <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
@@ -324,7 +324,7 @@ function sleep(ms) {
   bottom: 5px;
   left: 70px;
   width: 100%; 
-  color: red;
+  color: #f97878;
 }
 
 .like-button:hover {
