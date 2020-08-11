@@ -74,13 +74,19 @@
             </span>
         </div>
         <div v-else-if="cell.kind === cellKind.LIKES" @click="relike(cell)">
-          Learning from
+          <h4>
+            <b-icon icon="dice6" ></b-icon>
+            Likes
+          </h4>
           <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-div">
             <img :src="picture" class="likes-picture">
           </div>
         </div>   
         <div v-else-if="cell.kind === cellKind.RANDOM">
-          Random pictures
+          <h4>
+            <b-icon icon="dice6" ></b-icon>
+            Random
+          </h4>
         </div>                
       </div>
     </div>
@@ -153,7 +159,7 @@ export default {
                 liked: false,
               });
             }
-            await sleep(1000);
+            await sleep(200);
           }
           catch(err) {
             console.error(err, err.stack);
@@ -271,13 +277,14 @@ function sleep(ms) {
   flex-wrap: wrap;
 }
 
-.cell 
-{ 
+.cell { 
   width: 200px;
   height: 200px;
   margin: 5px;
+  text-align: center;
   /* For like button positioning to work. */
   position: relative; 
+  border: 1px solid var(--secondary);
 } 
 
 .picture {
