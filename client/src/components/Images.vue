@@ -61,7 +61,6 @@
         </b-row>
       </b-container>  
     </div>
-    <canvas id="testCanvas" width="200" height="200" style="border:1px;" />
     <div class="flex-container content">
       <div v-for="(cell, index) in cells" :key="index" class="cell">
         <div v-if="cell.kind === cellKind.PICTURE" >
