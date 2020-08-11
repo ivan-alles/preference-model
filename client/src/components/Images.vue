@@ -5,18 +5,16 @@
     </div>
     <div id="stickyHeader">
       <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-      <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">Learn</b-button>
+        <b-button  @click="learnFromLikes()" :disabled="! isLearningEnabled()" variant="primary">Learn</b-button>
       </span>
-      <span v-if="isLearningEnabled()">
-        <b-tooltip target="learn-wrapper" >
+      <b-tooltip target="learn-wrapper">
+        <template v-if="isLearningEnabled()">
           Learn from likes
-        </b-tooltip>
-      </span>
-      <span v-else>
-        <b-tooltip target="learn-wrapper" >
+        </template>
+        <template v-else>
           Like some pictures to learn from them
-        </b-tooltip>
-      </span>      
+        </template>      
+      </b-tooltip>
       <b-button @click="forgetLearning()" variant="secondary">Forget learning</b-button>
       <b-button @click="deleteAllPictures()" variant="secondary" >Delete all pictures</b-button>
       <b-container>
