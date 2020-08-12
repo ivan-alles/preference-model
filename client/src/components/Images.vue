@@ -88,7 +88,13 @@
             <b-icon icon="dice6" ></b-icon>
             Random
           </h4>
-        </template>                
+        </template>   
+        <template v-else-if="cell.kind === cellKind.ERROR">
+          <h4>
+            <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
+            Error
+          </h4>
+        </template>                      
       </div>
     </div>
   </b-container>
@@ -102,7 +108,8 @@ import { Engine } from '@/client-engine'
 const cellKind = {
     PICTURE: 'picture',
     LIKES: 'likes',
-    RANDOM: 'random'
+    RANDOM: 'random',
+    ERROR: 'error',
 }
 
 export default {
@@ -110,7 +117,6 @@ export default {
     return {
       cells: [],
       varianceSlider: 2,
-      pollPicturesIntervalId: null,
       cellKind, // Make this enum accessible in Vue code
     };
   },
@@ -136,40 +142,48 @@ export default {
     * Generates pictures in the background.
     */
     async getPicturesTask() {
+      try {
         await this.engine.init();
-        for(;;) {
-          try {
-            await sleep(50);
+      }
+      catch(err) {
+        console.error(err, err.stack);
+        this.cells.push({kind: cellKind.ERROR});
+        return;
+      }
+      while(!this.isExitTriggered) {
+        try {
+          await sleep(50);
 
-            if(!this.isActive) {
-              continue;
-            }
-            if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-              continue;
-            }
-            if(this.isLearningTriggered) {
-              this.isLearningTriggered = false;
-              await this.learn();
-            }
-            if(this.isRandomTriggered) {
-              this.isRandomTriggered = false;
-              await this.random();
-            }            
-            const enginePictures = await this.engine.getPictures(1, this.varianceSlider);
-            for(let enginePicture of enginePictures) {
-              this.cells.push({
-                kind: cellKind.PICTURE,
-                picture: enginePicture.picture,
-                latents: enginePicture.latents,
-                liked: false,
-              });
-            }
-            await sleep(200);
+          if(!this.isActive) {
+            continue;
           }
-          catch(err) {
-            console.error(err, err.stack);
+          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
+            continue;
           }
+          if(this.isLearningTriggered) {
+            this.isLearningTriggered = false;
+            await this.learn();
+          }
+          if(this.isRandomTriggered) {
+            this.isRandomTriggered = false;
+            await this.random();
+          }            
+          const enginePictures = await this.engine.getPictures(1, this.varianceSlider);
+          for(let enginePicture of enginePictures) {
+            this.cells.push({
+              kind: cellKind.PICTURE,
+              picture: enginePicture.picture,
+              latents: enginePicture.latents,
+              liked: false,
+            });
+          }
+          await sleep(200);
         }
+        catch(err) {
+          console.error(err, err.stack);
+          this.cells.push({kind: cellKind.ERROR});
+        }
+      }
     },
 
     triggerLearning() {
@@ -227,6 +241,7 @@ export default {
     }
   },
   created() {
+    this.isExitTriggered = false;
     this.isActive = true;
     this.cells = [];
     this.isRandomTriggered = true;
@@ -239,7 +254,7 @@ export default {
   },
 
   beforeDestroy () {
-    clearInterval(this.pollPicturesIntervalId)
+    this.isExitTriggered = true;
   },
 
   watch: {

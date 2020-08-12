@@ -25,28 +25,32 @@ class Generator {
    * @returns an array of pictures.
    */
   async generate(latents) {
-    const count = latents.shape[0];
+    let pictures = null;
+    try {
+      const count = latents.shape[0];
 
-    const pictures = tf.tidy(() => {
-      let output = this.model.predict(latents);
-      output = tf.clipByValue(output, 0, 1.0);
-      // Convert to an array of tensors of shapes [H, W, 3]
-      const pictures = output.unstack(0); 
-      return pictures;
-    });
+      let pictures = tf.tidy(() => {
+        let output = this.model.predict(latents);
+        output = tf.clipByValue(output, 0, 1.0);
+        // Convert to an array of tensors of shapes [H, W, 3]
+        return output.unstack(0); 
+      });
 
-    const pictureData = [];
+      const pictureData = [];
 
-    for(let i = 0; i < count; ++i) {
-      // TODO(ia): we draw the picture and then convert it into PNG.
-      // This is probably not efficient. We can optimize this by drawing
-      // directly on a canvas in Vue and save CPU time.
-      let canvas = document.createElement("canvas");
-      await tf.browser.toPixels(pictures[i], canvas);
-      pictureData.push(canvas.toDataURL("image/png"));
+      for(let i = 0; i < count; ++i) {
+        // TODO(ia): we draw the picture and then convert it into PNG.
+        // This is probably not efficient. We can optimize this by drawing
+        // directly on a canvas in Vue and save CPU time.
+        let canvas = document.createElement("canvas");
+        await tf.browser.toPixels(pictures[i], canvas);
+        pictureData.push(canvas.toDataURL("image/png"));
+      }
+      return pictureData;
     }
-    tf.dispose(pictures);
-    return pictureData;
+    finally {
+      tf.dispose(pictures);
+    }
   }
 }
 
@@ -132,7 +136,7 @@ class PreferenceModel {
 
 /**
  * Combines alogrithms to implement application logic.
- * Converts the data between UI (plain javascript) to internal representations (tf.tensors).
+ * Converts the data between UI (plain javascript data) to internal representations (tf.tensor).
  */
 class Engine {
   constructor () {
@@ -155,21 +159,26 @@ class Engine {
 
   async getPictures(count, variance) {
     // console.log("tf.memory", tf.memory());
-    const latentsTensor = tf.tidy(() => this.preferenceModel.generate(count, variance));
-    const pictures = await this.generator.generate(latentsTensor);
-    const latents = await latentsTensor.array();
-    latentsTensor.dispose();
-    const result = [];
-    for(let i = 0; i < count; ++i) {
-      result.push(
-        {
-          "picture": pictures[i],
-          "latents": latents[i]
-        }
-      );
+    let latentsTensor = null;
+    try {
+      const latentsTensor = tf.tidy(() => this.preferenceModel.generate(count, variance));
+      const pictures = await this.generator.generate(latentsTensor);
+      const latents = await latentsTensor.array();
+      const result = [];
+      console.log("finally");
+      for(let i = 0; i < count; ++i) {
+        result.push(
+          {
+            "picture": pictures[i],
+            "latents": latents[i]
+          }
+        );
+      }
+      return result;
     }
-
-    return result;
+    finally {
+      tf.dispose(latentsTensor);
+    }
   }
 
   async learn(likes) {
@@ -178,7 +187,6 @@ class Engine {
 
   get isRandom() {
     return this.preferenceModel.isRandom;
-
   }
 }
 
