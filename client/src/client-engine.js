@@ -15,7 +15,9 @@ class Generator {
     if (process.env.NODE_ENV === "production" ) {
       MODEL_URL = '/preference-model' + MODEL_URL;      
     }
+    console.log(`Loading model ${MODEL_URL} ...`)
     this.model = await loadGraphModel(MODEL_URL);
+    console.log(`Model loaded`)
   }
 
   /**
