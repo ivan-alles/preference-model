@@ -15,6 +15,8 @@ class Generator {
     if (process.env.NODE_ENV === "production" ) {
       MODEL_URL = '/preference-model' + MODEL_URL;      
     }
+    // Test downloading
+    let MODEL_URL = 'https://ivan-alles.github.io/preference-model/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
     console.log(`Loading model ${MODEL_URL} ...`)
     this.model = await loadGraphModel(MODEL_URL);
     console.log(`Model loaded`)
@@ -167,7 +169,6 @@ class Engine {
       const pictures = await this.generator.generate(latentsTensor);
       const latents = await latentsTensor.array();
       const result = [];
-      console.log("finally");
       for(let i = 0; i < count; ++i) {
         result.push(
           {
