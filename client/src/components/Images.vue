@@ -84,6 +84,12 @@
               </div>
             </div>
           </template>   
+          <template v-else-if="cell.kind === cellKind.IN_PROGRESS">
+            <h4>
+              <b-spinner variant="secondary" label="Dreaming"></b-spinner>
+              Dreaming
+            </h4>
+          </template>            
           <template v-else-if="cell.kind === cellKind.RANDOM">
             <h4>
               <b-icon icon="dice6" ></b-icon>
@@ -101,7 +107,7 @@
     </template>
     <template v-if="state === stateKind.INIT">
       <h4>
-        <b-spinner variant="secondary" label="Loading ..."></b-spinner>
+        <b-spinner variant="secondary" label="Loading"></b-spinner>
         Loading
       </h4>
     </template>
@@ -121,17 +127,18 @@
 import { Engine } from '@/client-engine'
 
 const cellKind = {
-    PICTURE: 'picture',
-    LIKES: 'likes',
-    RANDOM: 'random',
-    ERROR: 'error',
+    PICTURE: 'PICTURE',
+    IN_PROGRESS: 'IN_PROGRESS',
+    LIKES: 'LIKES',
+    RANDOM: 'RANDOM',
+    ERROR: 'ERROR',
 }
 
 const stateKind = {
-    INIT: 'init',       // Loading models, etc.
-    WORKING: 'working', // Generating pictures
-    EXIT: 'exit',       // App finished.
-    ERROR: 'error',     // Fatal error, cannot work.
+    INIT: 'INIT',       // Loading models, etc.
+    WORKING: 'WORKING', // Generating pictures
+    EXIT: 'EXIT',       // App finished.
+    ERROR: 'ERROR',     // Fatal error, cannot work.
 }
 
 export default {
@@ -177,37 +184,55 @@ export default {
         return;
       }
       while(this.state != stateKind.EXIT) {
-        try {
-          await sleep(50);
+        await sleep(50);
+        if(!this.isActive) {
+          continue;
+        }
+        if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
+          continue;
+        }
 
-          if(!this.isActive) {
-            continue;
-          }
-          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-            continue;
-          }
+        try {
           if(this.isLearningTriggered) {
             this.isLearningTriggered = false;
             await this.learn();
           }
-          if(this.isRandomTriggered) {
+          else if(this.isRandomTriggered) {
             this.isRandomTriggered = false;
             await this.random();
-          }            
-          const enginePictures = await this.engine.getPictures(1, this.varianceSlider);
-          for(let enginePicture of enginePictures) {
-            this.cells.push({
-              kind: cellKind.PICTURE,
-              picture: enginePicture.picture,
-              latents: enginePicture.latents,
-              liked: false,
-            });
+          }  
+        }
+        catch(err) {
+          console.error(err, err.stack);
+          // TODO(ia): shall we show this (unlikely to happen) error on UI?
+          continue;
+        }        
+
+        const size = 1;
+        let newCells = [];
+        for(let i = 0; i < size; ++i) {
+          const cell = { kind: cellKind.IN_PROGRESS };
+          newCells.push(cell);
+          this.cells.push(cell);
+        }
+
+        try {
+          const enginePictures = await this.engine.getPictures(size, this.varianceSlider);
+          for(let i = 0; i < size; ++i) {
+            newCells[i].picture = enginePictures[i].picture;
+            newCells[i].latents = enginePictures[i].latents;
+            newCells[i].liked = false;
+            newCells[i].kind = cellKind.PICTURE;
           }
           await sleep(200);
         }
         catch(err) {
           console.error(err, err.stack);
-          this.cells.push({kind: cellKind.ERROR});
+          for(let i = 0; i < size; ++i) {
+            if(newCells[i].kind == cellKind.IN_PROGRESS) {
+              newCells[i].kind = cellKind.ERROR;
+            }
+          }
         }
       }
     },

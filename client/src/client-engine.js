@@ -15,8 +15,10 @@ class Generator {
     if (process.env.NODE_ENV === "production" ) {
       MODEL_URL = '/preference-model' + MODEL_URL;      
     }
+    
     // Test downloading
-    let MODEL_URL = 'https://ivan-alles.github.io/preference-model/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
+    // let MODEL_URL = 'https://ivan-alles.github.io/preference-model/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
+
     console.log(`Loading model ${MODEL_URL} ...`)
     this.model = await loadGraphModel(MODEL_URL);
     console.log(`Model loaded`)
