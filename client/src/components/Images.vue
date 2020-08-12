@@ -73,12 +73,12 @@
                 <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
               </span>
           </template>
-          <template v-else-if="cell.kind === cellKind.LIKES" @click="relike(cell)">
+          <template v-else-if="cell.kind === cellKind.LIKES">
             <h4>
-              <b-icon icon="heart" ></b-icon>
+              <b-icon icon="heart" @click="relike(cell)"></b-icon>
               Likes
             </h4>
-            <div class="likes-picture-row">
+            <div class="likes-picture-row" @click="relike(cell)">
               <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-col">
                 <img :src="picture" class="likes-picture">
               </div>
@@ -286,6 +286,7 @@ export default {
     },
 
     relike(cell) {
+      console.log("relike");
       for(let like of cell.likes) {
           like.liked = true;
       }
