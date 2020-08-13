@@ -10073,6 +10073,11 @@ vue-router@^3.2.0:
   resolved "https://registry.npm.taobao.org/vue-router/download/vue-router-3.3.4.tgz?cache=0&sync_timestamp=1595344221807&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fvue-router%2Fdownload%2Fvue-router-3.3.4.tgz#4e38abc34a11c41b6c3d8244449a2e363ba6250b"
   integrity sha1-Tjirw0oRxBtsPYJERJouNjumJQs=
 
+vue-social-sharing@^3.0.0-beta.11:
+  version "3.0.0-beta.11"
+  resolved "https://registry.yarnpkg.com/vue-social-sharing/-/vue-social-sharing-3.0.0-beta.11.tgz#3a753664f256ae4040ca2d7634dde47c83024038"
+  integrity sha512-jIATgcKcBGQveAbU4sKjHcsGN7gI/bq/T9fm/5qowtBuZe0I+5CZRWcAGDd6G64HzQfFEyNBLC02GYjMtaovhA==
+
 vue-style-loader@^4.1.0, vue-style-loader@^4.1.2:
   version "4.1.2"
   resolved "https://registry.npm.taobao.org/vue-style-loader/download/vue-style-loader-4.1.2.tgz#dedf349806f25ceb4e64f3ad7c0a44fba735fcf8"

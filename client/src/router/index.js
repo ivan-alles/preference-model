@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import { BootstrapVue, IconsPlugin, FormInputPlugin } from 'bootstrap-vue'
+import VueSocialSharing from 'vue-social-sharing'
 import Home from '../views/Home.vue'
 
 import '../custom.scss'
@@ -9,6 +10,7 @@ Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
 Vue.use(FormInputPlugin)
 Vue.use(VueRouter)
+Vue.use(VueSocialSharing)
 
   const routes = [
   {
