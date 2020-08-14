@@ -4,106 +4,115 @@
       <h1>Make a Person of Your Dreams</h1>
     </div>
     <template v-if="state === stateKind.WORKING">
-      <div id="stickyHeader">
-        <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-          <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled()" variant="primary">
-            <b-icon icon="heart"></b-icon>
-            Learn
+      <template v-if="largePicture === null">
+        <div id="stickyHeader">
+          <span id="learn-wrapper" class="d-inline-block" tabindex="0">
+            <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled()" variant="primary">
+              <b-icon icon="heart"></b-icon>
+              Learn
+            </b-button>
+          </span>
+          <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
+            <template v-if="isLearningEnabled()">
+              Learn from likes
+            </template>
+            <template v-else>
+              Like some pictures to learn from them
+            </template>      
+          </b-tooltip>
+          <span id="random-wrapper" class="d-inline-block" tabindex="0">
+            <b-button @click="triggerRandom()" variant="secondary" :disabled="isRandom()">
+              <b-icon icon="dice6" ></b-icon>
+              Random
+            </b-button>
+          </span>
+          <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
+            <template v-if="! isRandom()">
+              Forget learning and make random pictures
+            </template>
+            <template v-else>
+              Already making random pictures
+            </template>      
+          </b-tooltip>      
+          <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary">
+            <b-icon icon="trash" ></b-icon>
+            Delete all
           </b-button>
-        </span>
-        <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
-          <template v-if="isLearningEnabled()">
-            Learn from likes
-          </template>
-          <template v-else>
-            Like some pictures to learn from them
-          </template>      
-        </b-tooltip>
-        <span id="random-wrapper" class="d-inline-block" tabindex="0">
-          <b-button @click="triggerRandom()" variant="secondary" :disabled="isRandom()">
-            <b-icon icon="dice6" ></b-icon>
-            Random
-          </b-button>
-        </span>
-        <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
-          <template v-if="! isRandom()">
-            Forget learning and make random pictures
-          </template>
-          <template v-else>
-            Already making random pictures
-          </template>      
-        </b-tooltip>      
-        <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary">
-          <b-icon icon="trash" ></b-icon>
-          Delete all
-        </b-button>
-        <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
-          Delete all pictures
-        </b-tooltip>
-        <b-container>
-          <b-row>
-            <b-col sm="1">
-              <label>Variance</label>
-            </b-col>
-            <b-col sm="3" id="variance-slider">
-              <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
-            </b-col>
-            <!-- This does not work well, the tooltip remains visible all the time.
-            TODO(ia): try again after layout rework, delete if still not working.
-            <b-tooltip target="variance-slider" delay="{ show: 1000, hide: 50 }">
-              <template v-if="! isRandom()">
-                Vary pictures less or more
-              </template>
-              <template v-else>
-                Cannot vary random pictures, like some pictures and learn first
-              </template>      
-            </b-tooltip>           
-            -->
-          </b-row>
-        </b-container>  
-      </div>
-      <div class="flex-container content">
-        <div v-for="(cell, index) in cells" :key="index" class="cell">
-          <template v-if="cell.kind === cellKind.PICTURE" >
-            <img :src="cell.picture" class="picture">
+          <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
+            Delete all pictures
+          </b-tooltip>
+          <b-container>
+            <b-row>
+              <b-col sm="1">
+                <label>Variance</label>
+              </b-col>
+              <b-col sm="3" id="variance-slider">
+                <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
+              </b-col>
+              <!-- This does not work well, the tooltip remains visible all the time.
+              TODO(ia): try again after layout rework, delete if still not working.
+              <b-tooltip target="variance-slider" delay="{ show: 1000, hide: 50 }">
+                <template v-if="! isRandom()">
+                  Vary pictures less or more
+                </template>
+                <template v-else>
+                  Cannot vary random pictures, like some pictures and learn first
+                </template>      
+              </b-tooltip>           
+              -->
+            </b-row>
+          </b-container>  
+        </div>
+        <div class="flex-container content">
+          <div v-for="(cell, index) in cells" :key="index" class="cell">
+            <template v-if="cell.kind === cellKind.PICTURE" >
+              <img :src="cell.picture" class="picture" @click="showLargePicture(cell)">
               <span v-if="cell.liked">
                 <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button liked"></b-icon>
               </span>
               <span v-else>
                 <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
               </span>
-          </template>
-          <template v-else-if="cell.kind === cellKind.LIKES">
-            <h4>
-              <b-icon icon="heart" @click="relike(cell)"></b-icon>
-              Likes
-            </h4>
-            <div class="likes-picture-row" @click="relike(cell)">
-              <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-col">
-                <img :src="picture" class="likes-picture">
+            </template>
+            <template v-else-if="cell.kind === cellKind.LIKES">
+              <h4>
+                <b-icon icon="heart" @click="relike(cell)"></b-icon>
+                Likes
+              </h4>
+              <div class="likes-picture-row" @click="relike(cell)">
+                <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-col">
+                  <img :src="picture" class="likes-picture">
+                </div>
               </div>
-            </div>
-          </template>   
-          <template v-else-if="cell.kind === cellKind.IN_PROGRESS">
-            <h4>
-              <b-spinner variant="secondary" label="Dreaming"></b-spinner>
-              Dreaming
-            </h4>
-          </template>            
-          <template v-else-if="cell.kind === cellKind.RANDOM">
-            <h4>
-              <b-icon icon="dice6" ></b-icon>
-              Random
-            </h4>
-          </template>   
-          <template v-else-if="cell.kind === cellKind.ERROR">
-            <h4 class="error">
-              <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
-              Error
-            </h4>
-          </template>                      
+            </template>   
+            <template v-else-if="cell.kind === cellKind.IN_PROGRESS">
+              <h4>
+                <b-spinner variant="secondary" label="Dreaming"></b-spinner>
+                Dreaming
+              </h4>
+            </template>            
+            <template v-else-if="cell.kind === cellKind.RANDOM">
+              <h4>
+                <b-icon icon="dice6" ></b-icon>
+                Random
+              </h4>
+            </template>   
+            <template v-else-if="cell.kind === cellKind.ERROR">
+              <h4 class="error">
+                <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
+                Error
+              </h4>
+            </template>                      
+          </div>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <b-button @click="closeLargePicture()" variant="primary">
+          <b-icon icon="arrow-left-short" ></b-icon>
+          Continue
+        </b-button>
+        <img :src="largePicture.picture" class="large-picture">
+      </template>
     </template>
     <template v-if="state === stateKind.INIT">
       <h4>
@@ -147,6 +156,7 @@ export default {
       state: stateKind.INIT,
       cells: [],
       varianceSlider: 2,
+      largePicture: null,
       // Make enums accessible in Vue code
       cellKind, 
       stateKind
@@ -183,11 +193,15 @@ export default {
         console.error(err, err.stack);
         return;
       }
+
       while(this.state != stateKind.EXIT) {
         await sleep(50);
-        if(!this.isActive) {
+
+        if(!this.isActive || this.largePicture !== null) {
           continue;
         }
+        
+        // Are images below the bottom of the screen?
         if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
           continue;
         }
@@ -285,6 +299,17 @@ export default {
       cell.liked = !cell.liked;
     },
 
+    showLargePicture(cell) {
+      this.largePicture = {
+        picture: cell.picture,
+        latents: cell.latents
+      }
+    },
+
+    closeLargePicture() {
+      this.largePicture = null;
+    },
+
     relike(cell) {
       console.log("relike");
       for(let like of cell.likes) {
@@ -293,6 +318,7 @@ export default {
     }
   },
   created() {
+    console.log(this.$route.query)
     this.isActive = true;
     this.isRandomTriggered = true;
     this.isLearningTriggered = false;
@@ -378,6 +404,7 @@ function sleep(ms) {
     width: 100%; 
     object-fit: contain;
     border-radius: 4px;
+    cursor: zoom-in;
 }
 
 .likes-picture-row {
@@ -415,6 +442,11 @@ function sleep(ms) {
 
 button {
   margin: 0 0.5rem 0 0;
+}
+
+.large-picture {
+  border-radius: 4px;
+  box-shadow: 2px 2px 4px #0004;
 }
 
 .error {
