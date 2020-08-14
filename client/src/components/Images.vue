@@ -111,6 +111,13 @@
           <b-icon icon="arrow-left-short" ></b-icon>
           Continue
         </b-button>
+        <ShareNetwork
+            network="VK"
+            :url="shareUrl()"
+            :title="shareTitle()"
+          >
+          <span>Share on VK</span>
+        </ShareNetwork>        
         <img :src="largePicture.picture" class="large-picture">
       </template>
     </template>
@@ -134,6 +141,7 @@
 
 // import { Engine } from '@/server-engine'
 import { Engine } from '@/client-engine'
+import { float32ArrayToBase64 } from '@/utils'
 
 const cellKind = {
     PICTURE: 'PICTURE',
@@ -302,7 +310,7 @@ export default {
     showLargePicture(cell) {
       this.largePicture = {
         picture: cell.picture,
-        latents: cell.latents
+        latents: cell.latents,
       }
     },
 
@@ -311,14 +319,26 @@ export default {
     },
 
     relike(cell) {
-      console.log("relike");
       for(let like of cell.likes) {
           like.liked = true;
       }
-    }
+    },
+
+    shareUrl() {
+      const url = window.location.href + '?show=' + float32ArrayToBase64(this.largePicture.latents);
+      console.log(url);
+      return url;
+    },
+
+    shareTitle() {
+      return "Create a Person of Your Dreams";
+    },
   },
+
   created() {
     console.log(this.$route.query)
+    console.log(this.$route)
+    console.log(window.location.href)
     this.isActive = true;
     this.isRandomTriggered = true;
     this.isLearningTriggered = false;
