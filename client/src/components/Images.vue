@@ -351,7 +351,7 @@ export default {
     },
 
     shareTitle() {
-      return "Create a Person of Your Dreams";
+      return "Make a Person of Your Dreams";
     },
   },
 
