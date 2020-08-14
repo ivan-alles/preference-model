@@ -19,4 +19,4 @@ function base64ToFloat32Array(str) {
   return Array.from(tarr);
 }
 
-export { float32ArrayToBase64, base64ToFloat32Array}
+export { float32ArrayToBase64, base64ToFloat32Array }
