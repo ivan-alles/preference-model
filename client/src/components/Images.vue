@@ -116,8 +116,10 @@
             :url="shareUrl()"
             :title="shareTitle()"
           >
-          <span>Share on VK</span>
-        </ShareNetwork>        
+          <b-button variant="secondary">
+            <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
+          </b-button>
+        </ShareNetwork>
         <img :src="largePicture.picture" class="large-picture">
       </template>
     </template>
@@ -467,6 +469,7 @@ button {
 .large-picture {
   border-radius: 4px;
   box-shadow: 2px 2px 4px #0004;
+  margin-top: 10px;  
 }
 
 .error {
