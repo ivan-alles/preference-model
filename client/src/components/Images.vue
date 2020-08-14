@@ -143,7 +143,7 @@
 
 // import { Engine } from '@/server-engine'
 import { Engine } from '@/client-engine'
-import { float32ArrayToBase64 } from '@/utils'
+import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 const cellKind = {
     PICTURE: 'PICTURE',
@@ -196,6 +196,24 @@ export default {
     async getPicturesTask() {
       try {
         await this.engine.init();
+
+        if('show' in this.$route.query) {
+          const showParam = decodeURIComponent(this.$route.query['show']);
+          console.log(showParam);
+          const latents = base64ToFloat32Array(showParam);
+          const enginePictures = await this.engine.generatePictures([latents]);
+          this.cells.push({
+            picture: enginePictures[0].picture,
+            latents: enginePictures[0].latents,
+            liked: false,
+            kind: cellKind.PICTURE
+          });
+          this.largePicture = {
+            picture: enginePictures[0].picture,
+            latents: enginePictures[0].latents
+          }
+        }       
+
         this.state = stateKind.WORKING;
       }
       catch(err) {
@@ -241,7 +259,7 @@ export default {
         }
 
         try {
-          const enginePictures = await this.engine.getPictures(size, this.varianceSlider);
+          const enginePictures = await this.engine.createPictures(size, this.varianceSlider);
           for(let i = 0; i < size; ++i) {
             newCells[i].picture = enginePictures[i].picture;
             newCells[i].latents = enginePictures[i].latents;
@@ -327,8 +345,8 @@ export default {
     },
 
     shareUrl() {
-      const url = window.location.href + '?show=' + float32ArrayToBase64(this.largePicture.latents);
-      console.log(url);
+      const url = window.location.href + '?show=' + 
+        encodeURIComponent(float32ArrayToBase64(this.largePicture.latents));
       return url;
     },
 
@@ -338,9 +356,6 @@ export default {
   },
 
   created() {
-    console.log(this.$route.query)
-    console.log(this.$route)
-    console.log(window.location.href)
     this.isActive = true;
     this.isRandomTriggered = true;
     this.isLearningTriggered = false;

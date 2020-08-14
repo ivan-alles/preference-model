@@ -163,27 +163,42 @@ class Engine {
     this.preferenceModel.init();
   }
 
-  async getPictures(count, variance) {
+  async createPictures(count, variance) {
     // console.log("tf.memory", tf.memory());
     let latentsTensor = null;
     try {
       const latentsTensor = tf.tidy(() => this.preferenceModel.generate(count, variance));
-      const pictures = await this.generator.generate(latentsTensor);
-      const latents = await latentsTensor.array();
-      const result = [];
-      for(let i = 0; i < count; ++i) {
-        result.push(
-          {
-            "picture": pictures[i],
-            "latents": latents[i]
-          }
-        );
-      }
-      return result;
+      return await this.generatePicturesFromTensor(latentsTensor);
     }
     finally {
       tf.dispose(latentsTensor);
     }
+  }
+
+  async generatePictures(latents) {
+    let latentsTensor = null;
+    try {
+      const latentsTensor = tf.tensor(latents);
+      return await this.generatePicturesFromTensor(latentsTensor);
+    }
+    finally {
+      tf.dispose(latentsTensor);
+    }
+  }
+
+  async generatePicturesFromTensor(latentsTensor) {
+    const pictures = await this.generator.generate(latentsTensor);
+    const latents = await latentsTensor.array();
+    const result = [];
+    for(let i = 0; i < latentsTensor.shape[0]; ++i) {
+      result.push(
+        {
+          "picture": pictures[i],
+          "latents": latents[i]
+        }
+      );
+    }
+    return result;
   }
 
   async learn(likes) {
