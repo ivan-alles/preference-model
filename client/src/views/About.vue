@@ -9,18 +9,18 @@
     <section>
       <h2>How it works</h2>
       <p>
-      At the beginning you will see random pictures, dreamed up by a neural network. This neural network is called generator. 
-      The people on the pictures look real, but they do not exist!
+      In the beginning, you will see random pictures, dreamed up by a neural network. This neural network is called a generator. 
+      The people on the images look real, but they do not exist!
       </p>
       <p>
-      When you like some pictures and press <b>Learn</b>, another piece of AI will learn them. The generator starts to create new pictures 
-      sharing common traits of your likes. 
+      When you like some pictures and press <b>Learn</b>, another piece of AI will learn them. The generator starts to create new images 
+      sharing the common traits of your likes. 
       </p>
       <p>
       You can vary the pictures less or more by changing the <b>Variance</b>.
       </p>
       <p>
-      Now you can like the best of the new pictures to create even more beatiful ones. Eventually you can let the AI dream up a person of your dream!
+      Now you can like the best of the new pictures to create even more beautiful ones. Eventually, you can let the AI dream up a person of your dream!
       </p>
     </section>
     <section>
