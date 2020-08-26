@@ -49,17 +49,6 @@
               <b-col sm="3" id="variance-slider">
                 <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
               </b-col>
-              <!-- This does not work well, the tooltip remains visible all the time.
-              TODO(ia): try again after layout rework, delete if still not working.
-              <b-tooltip target="variance-slider" delay="{ show: 1000, hide: 50 }">
-                <template v-if="! isRandom()">
-                  Vary pictures less or more
-                </template>
-                <template v-else>
-                  Cannot vary random pictures, like some pictures and learn first
-                </template>      
-              </b-tooltip>           
-              -->
             </b-row>
           </b-container>  
         </div>
