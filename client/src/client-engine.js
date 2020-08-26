@@ -303,6 +303,7 @@ function cartesianToSpherical(x) {
   return tf.concat(phiParts, 1);
 }
 
-// TODO(ia): some functions here are exported only for tests.
-// How to avoid this namespace clutter?
-export { Engine, PreferenceModel, scaledDirichlet, sphericalToCartesian, cartesianToSpherical }
+// Export for tests only.
+const testables = {PreferenceModel, sphericalToCartesian, cartesianToSpherical, scaledDirichlet};
+
+export { Engine, testables};

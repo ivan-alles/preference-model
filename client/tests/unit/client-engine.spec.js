@@ -1,7 +1,12 @@
 import * as tf from '@tensorflow/tfjs';
 tf.setBackend('cpu')
 
-import { PreferenceModel, scaledDirichlet, sphericalToCartesian, cartesianToSpherical } from '@/client-engine'
+import { testables } from '@/client-engine'
+const PreferenceModel = testables.PreferenceModel;
+const scaledDirichlet = testables.scaledDirichlet;
+const cartesianToSpherical = testables.cartesianToSpherical;
+const sphericalToCartesian = testables.sphericalToCartesian;
+
 
 test('tensorflow installed correctly', () => {
   const t = tf.tensor1d([1, 2, 3]);
