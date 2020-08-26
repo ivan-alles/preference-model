@@ -4,8 +4,6 @@ import {loadGraphModel} from '@tensorflow/tfjs-converter';
 
 let MODEL_URL = '/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
 
-// TODO: rename count -> size everywhere
-
 class Generator {
   constructor() {
     this.model = null;
@@ -27,13 +25,13 @@ class Generator {
   /**
    * Generate pictures from latents.
    *
-   * @param latents a [count, 512] tensor of latents.
+   * @param latents a [size, 512] tensor of latents.
    * @returns an array of pictures.
    */
   async generate(latents) {
     let pictures = null;
     try {
-      const count = latents.shape[0];
+      const size = latents.shape[0];
 
       let pictures = tf.tidy(() => {
         let output = this.model.predict(latents);
@@ -44,7 +42,7 @@ class Generator {
 
       const pictureData = [];
 
-      for(let i = 0; i < count; ++i) {
+      for(let i = 0; i < size; ++i) {
         // TODO(ia): we draw the picture and then convert it into PNG.
         // This is probably not efficient. We can optimize this by drawing
         // directly on a canvas in Vue and save CPU time.
@@ -100,12 +98,12 @@ class PreferenceModel {
     this.trainingExamples = trainingExamples;
   }
 
-  generate(count, variance) {
+  generate(size, variance) {
     if (this.isRandom) {
       // Sample uniform random points on n-sphere.
       // See https://mathworld.wolfram.com/HyperspherePointPicking.html
       // Do not normalize the length, as we will only work with the angles.
-      return tf.randomNormal([count, 512]);
+      return tf.randomNormal([size, 512]);
     }
     const varianceParams = this.VARIANCE_PARAMS[variance];
 
@@ -117,17 +115,17 @@ class PreferenceModel {
     let outputPhi = null;
     if (k == 1) {
       // Only one training example, it will be varied later by a normal "noise".
-      outputPhi = phi.broadcastTo([count, phi.shape[1]]);
+      outputPhi = phi.broadcastTo([size, phi.shape[1]]);
     }
     else {
-      // Random coefficients of shape (count, k, 1)
-      const r = scaledDirichlet([count], k, varianceParams[0], varianceParams[1]).expandDims(2);
-      // Sines and cosines of shape (count, k, 511)
-      let sin = tf.sin(phi).broadcastTo([count, ...phi.shape]);
-      let cos = tf.cos(phi).broadcastTo([count, ...phi.shape]);
+      // Random coefficients of shape (size, k, 1)
+      const r = scaledDirichlet([size], k, varianceParams[0], varianceParams[1]).expandDims(2);
+      // Sines and cosines of shape (size, k, 511)
+      let sin = tf.sin(phi).broadcastTo([size, ...phi.shape]);
+      let cos = tf.cos(phi).broadcastTo([size, ...phi.shape]);
       sin = sin.mul(r);
       cos = cos.mul(r);
-      // Linear combinations of shape (count, 511)
+      // Linear combinations of shape (size, 511)
       outputPhi = tf.atan2(sin.sum(1), cos.sum(1));
     }
 
@@ -163,11 +161,11 @@ class Engine {
     this.preferenceModel.init();
   }
 
-  async createPictures(count, variance) {
+  async createPictures(size, variance) {
     // console.log("tf.memory", tf.memory());
     let latentsTensor = null;
     try {
-      const latentsTensor = tf.tidy(() => this.preferenceModel.generate(count, variance));
+      const latentsTensor = tf.tidy(() => this.preferenceModel.generate(size, variance));
       return await this.generatePicturesFromTensor(latentsTensor);
     }
     finally {

@@ -13,7 +13,7 @@ class Engine {
       // Nothing to do.
     }
 
-    async getPictures(count, variance) {
+    async getPictures(size, variance) {
       if(this.firstCall) {
         this.firstCall = false;
         // reset to random pictures.
@@ -22,7 +22,7 @@ class Engine {
 
       let result = await axios.get(PICTURES_URL, {
           params: {
-              count: count,
+              size: size,
               variance: variance
             }
           }
