@@ -7,13 +7,13 @@
       <template v-if="largePicture === null">
         <div id="stickyHeader">
           <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-            <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled()" variant="primary">
+            <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
               <b-icon icon="heart"></b-icon>
               Learn
             </b-button>
           </span>
           <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
-            <template v-if="isLearningEnabled()">
+            <template v-if="isLearningEnabled">
               Learn from likes
             </template>
             <template v-else>
@@ -173,21 +173,20 @@ export default {
     };
   },
   computed: {
-  },  
-
-  methods: {
-    isRandom: function() {
-      return this.engine.isRandom;
-    },
-
     findLikes() {
       let likes = this.cells.filter(cell => cell.kind === cellKind.PICTURE && cell.liked);
       return likes;
     },
 
     isLearningEnabled() {
-      // TODO(ia): shall this be a computed property?
-      return this.findLikes().length != 0;
+      return this.findLikes.length != 0;
+    },
+  },  
+
+  methods: {
+
+    isRandom: function() {
+      return this.engine.isRandom;
     },
 
     /**
@@ -288,7 +287,7 @@ export default {
     },
 
     async learn() {
-      const likes = this.findLikes();
+      const likes = this.findLikes;
 
       if (likes.length === 0) {
         return;
