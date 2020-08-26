@@ -43,13 +43,15 @@ class Generator {
       const pictureData = [];
 
       for(let i = 0; i < size; ++i) {
-        // TODO(ia): we draw the picture and then convert it into PNG.
-        // This is probably not efficient. We can optimize this by drawing
-        // directly on a canvas in Vue and save CPU time.
+        // Draw a picture from the tf tensor and convert it to 
+        // native JS data to avoid keeping tensors in memory.
         let canvas = document.createElement("canvas");
         await tf.browser.toPixels(pictures[i], canvas);
-        pictureData.push(canvas.toDataURL("image/png"));
+        // Use JPEG compression as potentially more compact.
+        // The performance with the default quality is better than PNG.
+        pictureData.push(canvas.toDataURL("image/jpg"));
       }
+
       return pictureData;
     }
     finally {
