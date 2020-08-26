@@ -144,7 +144,7 @@ class PreferenceModel {
  * Combines alogrithms to implement application logic.
  * Converts the data between UI (plain javascript data) to internal representations (tf.tensor).
  */
-class Engine {
+export class Engine {
   constructor () {
     if (process.env.NODE_ENV === "production" ) {
       console.log("Production mode");
@@ -304,6 +304,4 @@ function cartesianToSpherical(x) {
 }
 
 // Export for tests only.
-const testables = {PreferenceModel, sphericalToCartesian, cartesianToSpherical, scaledDirichlet};
-
-export { Engine, testables};
+export const testables = {PreferenceModel, sphericalToCartesian, cartesianToSpherical, scaledDirichlet};
