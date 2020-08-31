@@ -1,3 +1,7 @@
+<!--
+  Error handling: the practice have shown that in case of an error we cannot recover. Only reloading the page helps.
+  This is what we implement in the code.
+-->
 <template>
   <b-container>
     <div>
@@ -86,12 +90,6 @@
                 Random
               </h4>
             </template>   
-            <template v-else-if="cell.kind === cellKind.ERROR">
-              <h4 class="error">
-                <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
-                Error
-              </h4>
-            </template>                      
           </div>
         </div>
       </template>
@@ -123,6 +121,10 @@
         <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
         Error
       </h4>
+      <b-button @click="reload()" variant="primary">
+        <b-icon icon="bootstrap-reboot"></b-icon>
+          Reload
+        </b-button>
     </template>
 
   </b-container>
@@ -205,8 +207,8 @@ export default {
         this.state = stateKind.WORKING;
       }
       catch(err) {
-        this.state = stateKind.ERROR;
         console.error(err, err.stack);
+        this.state = stateKind.ERROR;
         return;
       }
 
@@ -234,8 +236,8 @@ export default {
         }
         catch(err) {
           console.error(err, err.stack);
-          // TODO(ia): shall we show this (unlikely to happen) error on UI?
-          continue;
+          this.state = stateKind.ERROR;
+          return;
         }        
 
         const size = 1;
@@ -254,15 +256,11 @@ export default {
             newCells[i].liked = false;
             newCells[i].kind = cellKind.PICTURE;
           }
-          await sleep(200);
         }
         catch(err) {
           console.error(err, err.stack);
-          for(let i = 0; i < size; ++i) {
-            if(newCells[i].kind == cellKind.IN_PROGRESS) {
-              newCells[i].kind = cellKind.ERROR;
-            }
-          }
+          this.state = stateKind.ERROR;
+          return;
         }
       }
     },
@@ -273,6 +271,10 @@ export default {
 
     triggerRandom() {
       this.isRandomTriggered = true;
+    },
+
+    reload() {
+      location.reload();
     },
 
     async learn() {
