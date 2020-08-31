@@ -141,7 +141,6 @@ const cellKind = {
     IN_PROGRESS: 'IN_PROGRESS',
     LIKES: 'LIKES',
     RANDOM: 'RANDOM',
-    ERROR: 'ERROR',
 }
 
 const stateKind = {
