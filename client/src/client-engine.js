@@ -25,8 +25,8 @@ class Generator {
   /**
    * Generate pictures from latents.
    *
-   * @param latents a [size, 512] tensor of latents.
-   * @returns an array of pictures.
+   * @param {Tensor} latents a [size, 512] tensor of latents.
+   * @returns {Object[]} an array of pictures.
    */
   async generate(latents) {
     let pictures = null;
@@ -92,7 +92,7 @@ class PreferenceModel {
   
   /**
    * Train model on given training examples.
-   * @param trainingExamples a tensor [size, this.shape]. If size === 0 
+   * @param {Tensor} trainingExamples a tensor [size, this.shape]. If size === 0 
    * (regardless of the shape), revert to uniform random generator.
    */
   train(trainingExamples) {
@@ -100,6 +100,11 @@ class PreferenceModel {
     this.trainingExamples = trainingExamples;
   }
 
+  /**
+   * Generate new pictures.
+   * @param {number} size number of pictures.
+   * @param {number} variance an index to select a value from VARIANCE_PARAMS.
+   */
   generate(size, variance) {
     if (this.isRandom) {
       // Sample uniform random points on n-sphere.
@@ -163,6 +168,11 @@ export class Engine {
     this.preferenceModel.init();
   }
 
+  /**
+   * Create new pictures.
+   * @param {number} size number of pictures.
+   * @param {number} variance a number from 0 to 4 controlling the variance of the pictures.
+   */
   async createPictures(size, variance) {
     // console.log("tf.memory", tf.memory());
     let latentsTensor = null;
@@ -175,6 +185,10 @@ export class Engine {
     }
   }
 
+  /**
+   * Generate pictures from latents.
+   * @param {number[][]} latents array of latent vectors.
+   */
   async generatePictures(latents) {
     let latentsTensor = null;
     try {
@@ -186,6 +200,10 @@ export class Engine {
     }
   }
 
+  /**
+   * Generate pictures from a tensor of latents.
+   * @param {Tensor} latentsTensor 
+   */
   async generatePicturesFromTensor(latentsTensor) {
     const pictures = await this.generator.generate(latentsTensor);
     const latents = await latentsTensor.array();
@@ -201,10 +219,19 @@ export class Engine {
     return result;
   }
 
+  /**
+   * Learn likes.
+   * @param {number[][]} likes array of liked latents.
+   */
   async learn(likes) {
+    // No need to dispose this tensor, it will be stored in the preference model.
     this.preferenceModel.train(tf.tensor(likes));
   }
 
+  /**
+   * Check if random pictures are generated.
+   * @readonly
+   */
   get isRandom() {
     return this.preferenceModel.isRandom;
   }
@@ -214,11 +241,11 @@ export class Engine {
  * Sample from a symmetric Dirichlet distribution of dimension k and parameter a,
  * scaled around its mean.
  *
- * @param shape output shape, the output will have a shape of [shape, k]. 
- * @param k dimensionality.
- * @param a concentration parameter in [eps, +inf]. eps shall be > 0.01 or so to avoid nans.
- * @param scale scale: scale factor.
- * @returns a tensor of shape [shape, k].
+ * @param {array} shape output shape, the output will have a shape of [shape, k]. 
+ * @param {number} k dimensionality.
+ * @param {number} a concentration parameter in [eps, +inf]. eps shall be > 0.01 or so to avoid nans.
+ * @param {number} scale scale: scale factor.
+ * @returns {Tensor} a tensor of shape [shape, k].
  */
 function scaledDirichlet(shape, k, a, scale=1) {
   // Use the gamma distribution to sample from a Dirichlet distribution.
@@ -237,10 +264,10 @@ function scaledDirichlet(shape, k, a, scale=1) {
  * The resulting vectors will be on a unit sphere.
  * See https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates.
  *
- * @param phi a tensor [size, n-1] of angles.
+ * @param {Tensor} phi a tensor [size, n-1] of angles.
  *  phi[0:n-2] is in [0, pi], 
  *  phi[n-1] is in [-pi, pi].
- * @returns a tensor [size, n] of n-dimensional unit vectors.
+ * @returns {Tensor} a tensor [size, n] of n-dimensional unit vectors.
  */
 function sphericalToCartesian(phi) {
     const size = phi.shape[0];  // Number of vectors
@@ -268,8 +295,8 @@ function sphericalToCartesian(phi) {
  * The resulting r is ignored, as if the input were on the unit sphere.
  * See https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates.
  *
- * @param x a tensor [size, n] of cartesian n-dimensional vectors.
- * @returns a tensor [size, n-1] of angles phi, such that 
+ * @param {Tensor} x a tensor [size, n] of cartesian n-dimensional vectors.
+ * @returns {Tensor} a tensor [size, n-1] of angles phi, such that 
  * phi[0:n-2] is in [0, pi], phi[n-1] is in [-pi, pi].
  */
 function cartesianToSpherical(x) {
@@ -289,11 +316,11 @@ function cartesianToSpherical(x) {
   const phiParts = phi.split([n-2, 1], 1);
 
   /*
-  The description in wikipedia boils down to changing the sign of the  phi_(n-1) 
-  (using 1-based indexing) if and only if
-  1. there is no k such that x_k != 0 and all x_i == 0 for i > k
-  and
-  2. x_n < 0
+    The description in wikipedia boils down to changing the sign of the  phi_(n-1) 
+    (using 1-based indexing) if and only if
+    1. there is no k such that x_k != 0 and all x_i == 0 for i > k
+    and
+    2. x_n < 0
   */
 
   // -1 if last column of x < 0, otherwise 1

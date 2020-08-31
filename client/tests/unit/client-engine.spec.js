@@ -182,8 +182,7 @@ function expectTensorsClose(actual, expected, epsilon=null) {
 
 /**
  * Check if tensors are close. Is needed as tf.test_util.expectArraysClose()
- * always succeedes with tensor arguments.
- *
+ * always succeedes with tensor arguments, even if they are not equal (probably due to a bug).
  */
 function expectTensorsEqual(actual, expected) {
   tf.test_util.expectArraysEqual(
