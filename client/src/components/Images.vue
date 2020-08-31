@@ -296,7 +296,7 @@ export default {
       this.cells.push({
           kind: cellKind.LIKES,
           likes: likes,
-          pictures: pictures // TODO(ia): pictures are redundant, we can take them from likes.
+          pictures: pictures
       });
 
       await this.engine.learn(latents);
@@ -395,7 +395,7 @@ function sleep(ms) {
   top: 0;
   width: 100%;
   z-index: 100;
-  /* A counter-measure for transparent background. TODO(ia): why the BG is transparent? */
+  /* A counter-measure against the default transparent background. */
   background-color: #ffffff;
 }
 
