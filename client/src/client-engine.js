@@ -2,7 +2,7 @@
 import * as tf from '@tensorflow/tfjs';
 import {loadGraphModel} from '@tensorflow/tfjs-converter';
 
-let MODEL_URL = '/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
+let MODEL_URL = '/karras2018iclr-celebahq-256x256-conv1x1.tfjs/model.json';
 
 class Generator {
   constructor() {
@@ -10,6 +10,9 @@ class Generator {
   }
 
   async init() {
+    console.log('32-bit capable', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
+    console.log('32-bit enabled', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
+
     if (process.env.NODE_ENV === "production" ) {
       MODEL_URL = '/preference-model' + MODEL_URL;      
     }
@@ -36,6 +39,7 @@ class Generator {
       let pictures = tf.tidy(() => {
         let output = this.model.predict(latents);
         output = tf.clipByValue(output, 0, 1.0);
+        console.log(output.shape)
         // Convert to an array of tensors of shapes [H, W, 3]
         return output.unstack(0); 
       });
