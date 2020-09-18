@@ -23,6 +23,7 @@ images = new_model.predict(latents)
 # Convert to bytes in range [0, 255]
 images = np.rint(np.clip(images, 0, 1) * 255.0).astype(np.uint8)
 
+os.makedirs('.temp', exist_ok=True)
 # Save images as PNG.
 for idx in range(images.shape[0]):
-    PIL.Image.fromarray(images[idx], 'RGB').save('img%d.png' % idx)
+    PIL.Image.fromarray(images[idx], 'RGB').save('.temp/img%d.png' % idx)
