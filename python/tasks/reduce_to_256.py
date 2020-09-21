@@ -14,28 +14,8 @@ generator.summary()
 
 utils.print_sizes(generator)
 
-layers = []
-
-for layer in generator.layers:
-    if '.Conv2D' in str(layer) and layer.kernel.shape == (3, 3, 512, 512):
-        kernel = layer.kernel.numpy()[1:2, 1:2, :, :]
-        conv_layer = tf.keras.layers.Conv2D(
-            512,
-            1,
-            activation=tf.nn.leaky_relu,
-            padding='same',
-            name=layer.name,
-            kernel_initializer=tf.keras.initializers.Constant(kernel),
-            bias_initializer=tf.keras.initializers.Constant(layer.bias.numpy()),
-        )
-        layers.append(conv_layer)
-    else:
-        layers.append(layer)
-
-# Replace Dense layer and 2 upsampling layers
-layers = layers[:2] + [tf.keras.layers.RepeatVector(16)] + \
-    layers[3:40] + layers[41:45] + layers[46:]
-
+# Remove upsampling layers to reduce model output size from 1024 to 256
+layers = generator._layers[:39] + generator._layers[50:]
 generator2 = tf.keras.Sequential(layers)
 
 generator2.summary()
