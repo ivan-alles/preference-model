@@ -206,7 +206,7 @@ export default {
         this.state = stateKind.WORKING;
       }
       catch(err) {
-        console.error(err, err.stack);
+        console.error(err);
         this.state = stateKind.ERROR;
         return;
       }
@@ -234,7 +234,7 @@ export default {
           }  
         }
         catch(err) {
-          console.error(err, err.stack);
+          console.error(err);
           this.state = stateKind.ERROR;
           return;
         }        
@@ -257,8 +257,14 @@ export default {
           }
         }
         catch(err) {
-          console.error(err, err.stack);
+          console.error(err);
           this.state = stateKind.ERROR;
+          this.$ga.event({
+            eventCategory: 'LogError',
+            eventAction: 'Images.getPicturesTask.createPictures',
+            eventLabel: err.stack,
+            eventValue: 1
+          });
           return;
         }
       }
