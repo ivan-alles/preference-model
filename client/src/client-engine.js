@@ -117,7 +117,7 @@ class PreferenceModel {
       // Sample uniform random points on n-sphere.
       // See https://mathworld.wolfram.com/HyperspherePointPicking.html
       // Do not normalize the length, as we will only work with the angles.
-      return tf.randomNormal([size, 512]);
+      return tf.randomNormal([size, this.shape]);
     }
     const varianceParams = this.VARIANCE_PARAMS[variance];
 
