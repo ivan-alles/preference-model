@@ -10,12 +10,6 @@ class Generator {
   }
 
   async init() {
-    console.log('32-bit capable', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
-    console.log('32-bit enabled', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
-
-    // Switch off the convolution algo conv2dWithIm2Row() with very high memory requirements.
-    tf.ENV.set('WEBGL_CONV_IM2COL', false)
-
     if (process.env.NODE_ENV === "production" ) {
       MODEL_URL = '/preference-model' + MODEL_URL;      
     }
@@ -40,9 +34,10 @@ class Generator {
       const size = latents.shape[0];
 
       let pictures = tf.tidy(() => {
+        const t0 = performance.now();
         let output = this.model.predict(latents);
         output = tf.clipByValue(output, 0, 1.0);
-        console.log(output.shape)
+        console.log("Generated tensor [" + output.shape + "] in " + Math.round(performance.now() - t0) + " ms.")
         // Convert to an array of tensors of shapes [H, W, 3]
         return output.unstack(0); 
       });
@@ -157,7 +152,14 @@ class PreferenceModel {
  * Converts the data between UI (plain javascript data) to internal representations (tf.tensor).
  */
 export class Engine {
-  constructor () {
+  async init() {
+    // Do tf initialization here, before any usage of it.
+    console.log('32-bit capable', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
+    console.log('32-bit enabled', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
+    
+    // Switch off the convolution algo conv2dWithIm2Row() with very high memory requirements.
+    tf.ENV.set('WEBGL_CONV_IM2COL', false)
+
     if (process.env.NODE_ENV === "production" ) {
       console.log("Production mode");
       tf.enableProdMode();
@@ -168,9 +170,7 @@ export class Engine {
 
     this.generator = new Generator();
     this.preferenceModel = new PreferenceModel();
-  }
 
-  async init() {
     await this.generator.init();
     this.preferenceModel.init();
   }
