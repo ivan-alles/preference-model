@@ -15,6 +15,7 @@ tensorflow = "*"
 pillow = "*"
 flask = "*"
 flask-cors = "*"
+pydot = "*"
 
 [requires]
 python_version = "3.6"
