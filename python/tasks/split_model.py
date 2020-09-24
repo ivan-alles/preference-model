@@ -52,39 +52,64 @@ for i, layer in enumerate(generator.layers):
 
 print(f'Splitting at index {split_idx}')
 
-common = tf.keras.Sequential(generator._layers[:split_idx])
-full = tf.keras.Sequential(generator._layers[split_idx:])
+common_model = tf.keras.Sequential(generator._layers[:split_idx])
+full_model = tf.keras.Sequential(generator._layers[split_idx:])
 
-tf.keras.utils.plot_model(common,
+input = tf.keras.layers.Input(common_model.output.shape[1:])
+conv = tf.keras.layers.Conv2D(
+        filters=3,
+        kernel_size=1,
+        activation=None,
+        padding='same',
+        name='to_rgb')(input)
+
+preview_model = tf.keras.Model(inputs=input, outputs=conv)
+
+tf.keras.utils.plot_model(common_model,
                           to_file=os.path.join(OUTPUT_DIR, 'common.svg'),
                           dpi=50, show_shapes=True)
 
-tf.keras.utils.plot_model(full,
+tf.keras.utils.plot_model(full_model,
                           to_file=os.path.join(OUTPUT_DIR, 'full.svg'),
+                          dpi=50, show_shapes=True)
+
+tf.keras.utils.plot_model(preview_model,
+                          to_file=os.path.join(OUTPUT_DIR, 'preview_model.svg'),
                           dpi=50, show_shapes=True)
 
 rng = np.random.RandomState(1)
 
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+loss_fn = tf.keras.losses.MeanSquaredError()
+
 for epoch_i in range(10):
-    for batch_i in range(1000):
+    for batch_i in range(10):
         inputs = rng.standard_normal(size=(16, 512))
-        outputs_full = generator.predict(inputs)
+        intermediate = common_model.predict(inputs)
+        outputs_full = full_model.predict(intermediate)
         targets = []
         for i in range(len(outputs_full)):
             image = cv2.resize(outputs_full[i], (PREVIEW_SIZE, PREVIEW_SIZE), interpolation=cv2.INTER_CUBIC)
             targets.append(image)
-            if batch_i == 0:
-                to_pil(targets[-1]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
         targets = np.stack(targets)
-    print('hello')
+        with tf.GradientTape() as tape:
+            outputs = preview_model(intermediate, training=True)
+            loss_value = loss_fn(targets, outputs)
+        grads = tape.gradient(loss_value, preview_model.trainable_weights)
+        optimizer.apply_gradients(zip(grads, preview_model.trainable_weights))
+        if batch_i == 0:
+            for i in range(len(targets)):
+                to_pil(targets[i]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
+                to_pil(outputs[i]).save(os.path.join(OUTPUT_DIR, f'output-{i:02d}.png'))
+    print(f'Loss {loss_value}')
 
 
 # Test
 latents = np.random.RandomState(1000).randn(1000, *generator.input.shape[1:])  # 1000 random latents
 latents = latents[[477, 56, 83, 887, 583, 391, 86, 340, 341, 415]]  # hand-picked top-10
 
-intermediate = common.predict(latents)
-images = full.predict(intermediate)
+intermediate = common_model.predict(latents)
+images = full_model.predict(intermediate)
 
 
 # Save images as PNG.
@@ -93,5 +118,5 @@ for i in range(images.shape[0]):
 
 file_name, ext = os.path.splitext(model_path)
 
-common.save(os.path.join(OUTPUT_DIR, file_name + '-common' + ext))
-full.save(os.path.join(OUTPUT_DIR, file_name + '-full' + ext))
+common_model.save(os.path.join(OUTPUT_DIR, file_name + '-common' + ext))
+full_model.save(os.path.join(OUTPUT_DIR, file_name + '-full' + ext))
