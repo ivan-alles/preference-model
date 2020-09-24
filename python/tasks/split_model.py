@@ -19,6 +19,7 @@ Current generator has the following structure:
 import sys
 import os
 
+import cv2
 import numpy as np
 import tensorflow as tf
 import PIL.Image
@@ -27,6 +28,9 @@ from tasks import utils
 
 PREVIEW_SIZE = 256
 OUTPUT_DIR = 'output'
+
+def to_pil(numpy_image):
+    return PIL.Image.fromarray(np.rint(np.clip(numpy_image, 0, 1) * 255.0).astype(np.uint8), 'RGB')
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -59,6 +63,20 @@ tf.keras.utils.plot_model(full,
                           to_file=os.path.join(OUTPUT_DIR, 'full.svg'),
                           dpi=50, show_shapes=True)
 
+rng = np.random.RandomState(1)
+
+for epoch_i in range(10):
+    for batch_i in range(1000):
+        inputs = rng.standard_normal(size=(16, 512))
+        outputs_full = generator.predict(inputs)
+        targets = []
+        for i in range(len(outputs_full)):
+            image = cv2.resize(outputs_full[i], (PREVIEW_SIZE, PREVIEW_SIZE), interpolation=cv2.INTER_CUBIC)
+            targets.append(image)
+            if batch_i == 0:
+                to_pil(targets[-1]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
+        targets = np.stack(targets)
+    print('hello')
 
 
 # Test
@@ -68,15 +86,12 @@ latents = latents[[477, 56, 83, 887, 583, 391, 86, 340, 341, 415]]  # hand-picke
 intermediate = common.predict(latents)
 images = full.predict(intermediate)
 
-# Convert to bytes in range [0, 255]
-images = np.rint(np.clip(images, 0, 1) * 255.0).astype(np.uint8)
 
 # Save images as PNG.
-for idx in range(images.shape[0]):
-    PIL.Image.fromarray(images[idx], 'RGB').save(os.path.join(OUTPUT_DIR, f'img{idx}.png'))
+for i in range(images.shape[0]):
+    to_pil(images[i]).save(os.path.join(OUTPUT_DIR, f'image-{i}.png'))
 
 file_name, ext = os.path.splitext(model_path)
 
 common.save(os.path.join(OUTPUT_DIR, file_name + '-common' + ext))
 full.save(os.path.join(OUTPUT_DIR, file_name + '-full' + ext))
-

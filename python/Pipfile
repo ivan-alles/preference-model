@@ -16,6 +16,7 @@ pillow = "*"
 flask = "*"
 flask-cors = "*"
 pydot = "*"
+opencv-python = "*"
 
 [requires]
 python_version = "3.6"
