@@ -82,8 +82,8 @@ rng = np.random.RandomState(1)
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
 loss_fn = tf.keras.losses.MeanSquaredError()
 
-for epoch_i in range(10):
-    for batch_i in range(10):
+for epoch_i in range(2):
+    for batch_i in range(1):
         inputs = rng.standard_normal(size=(16, 512))
         intermediate = common_model.predict(inputs)
         outputs_full = full_model.predict(intermediate)
@@ -101,7 +101,7 @@ for epoch_i in range(10):
             for i in range(len(targets)):
                 to_pil(targets[i]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
                 to_pil(outputs[i]).save(os.path.join(OUTPUT_DIR, f'output-{i:02d}.png'))
-    print(f'Loss {loss_value}')
+    print(f'Epoch {epoch_i} loss {loss_value}')
 
 
 # Test
@@ -109,14 +109,15 @@ latents = np.random.RandomState(1000).randn(1000, *generator.input.shape[1:])  #
 latents = latents[[477, 56, 83, 887, 583, 391, 86, 340, 341, 415]]  # hand-picked top-10
 
 intermediate = common_model.predict(latents)
-images = full_model.predict(intermediate)
+preview_images = preview_model.predict(intermediate)
+full_images = full_model.predict(intermediate)
 
+for i in range(len(latents)):
+    to_pil(preview_images[i]).save(os.path.join(OUTPUT_DIR, f'preview-{i}.png'))
+    to_pil(full_images[i]).save(os.path.join(OUTPUT_DIR, f'full-{i}.png'))
 
-# Save images as PNG.
-for i in range(images.shape[0]):
-    to_pil(images[i]).save(os.path.join(OUTPUT_DIR, f'image-{i}.png'))
-
-file_name, ext = os.path.splitext(model_path)
+file_name, ext = os.path.splitext(os.path.basename(model_path))
 
 common_model.save(os.path.join(OUTPUT_DIR, file_name + '-common' + ext))
 full_model.save(os.path.join(OUTPUT_DIR, file_name + '-full' + ext))
+preview_model.save(os.path.join(OUTPUT_DIR, file_name + '-preview' + ext))
