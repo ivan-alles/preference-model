@@ -48,19 +48,25 @@ for i, layer in enumerate(generator.layers):
 
 print(f'Splitting at index {split_idx}')
 
+common = tf.keras.Sequential(generator._layers[:split_idx])
+full = tf.keras.Sequential(generator._layers[split_idx:])
+
+tf.keras.utils.plot_model(common,
+                          to_file=os.path.join(OUTPUT_DIR, 'common.svg'),
+                          dpi=50, show_shapes=True)
+
+tf.keras.utils.plot_model(full,
+                          to_file=os.path.join(OUTPUT_DIR, 'full.svg'),
+                          dpi=50, show_shapes=True)
 
 
 
-# Remove upsampling layers to reduce model output size from 1024 to 256
-layers = generator._layers[:39] + generator._layers[50:]
-generator2 = tf.keras.Sequential(layers)
-generator2.summary()
-
-# Generate latent vectors.
+# Test
 latents = np.random.RandomState(1000).randn(1000, *generator.input.shape[1:])  # 1000 random latents
 latents = latents[[477, 56, 83, 887, 583, 391, 86, 340, 341, 415]]  # hand-picked top-10
 
-images = generator2.predict(latents)
+intermediate = common.predict(latents)
+images = full.predict(intermediate)
 
 # Convert to bytes in range [0, 255]
 images = np.rint(np.clip(images, 0, 1) * 255.0).astype(np.uint8)
@@ -69,4 +75,8 @@ images = np.rint(np.clip(images, 0, 1) * 255.0).astype(np.uint8)
 for idx in range(images.shape[0]):
     PIL.Image.fromarray(images[idx], 'RGB').save(os.path.join(OUTPUT_DIR, f'img{idx}.png'))
 
-generator2.save(os.path.join(OUTPUT_DIR, os.path.basename(model_path)))
+file_name, ext = os.path.splitext(model_path)
+
+common.save(os.path.join(OUTPUT_DIR, file_name + '-common' + ext))
+full.save(os.path.join(OUTPUT_DIR, file_name + '-full' + ext))
+
