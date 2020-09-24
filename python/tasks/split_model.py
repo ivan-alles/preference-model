@@ -25,6 +25,7 @@ import PIL.Image
 
 from tasks import utils
 
+PREVIEW_SIZE = 256
 OUTPUT_DIR = 'output'
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -36,13 +37,23 @@ generator.summary()
 tf.keras.utils.plot_model(generator,
                           to_file=os.path.join(OUTPUT_DIR, 'generator.svg'),
                           dpi=50, show_shapes=True)
-
 utils.print_sizes(generator)
+
+split_idx = None
+
+for i, layer in enumerate(generator.layers):
+    if '.UpSampling2D' in str(layer) and layer.input.shape[1] == PREVIEW_SIZE:
+        split_idx = i
+        break
+
+print(f'Splitting at index {split_idx}')
+
+
+
 
 # Remove upsampling layers to reduce model output size from 1024 to 256
 layers = generator._layers[:39] + generator._layers[50:]
 generator2 = tf.keras.Sequential(layers)
-
 generator2.summary()
 
 # Generate latent vectors.
