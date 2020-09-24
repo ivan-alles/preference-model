@@ -18,6 +18,7 @@ Current generator has the following structure:
 """
 import sys
 import os
+import threading
 
 import cv2
 import numpy as np
@@ -28,6 +29,14 @@ from tasks import utils
 
 PREVIEW_SIZE = 256
 OUTPUT_DIR = 'output'
+
+exit_loop = False
+
+def key_capture_thread():
+    global exit_loop
+    input()
+    print("Interrupted by key press")
+    exit_loop = True
 
 def to_pil(numpy_image):
     return PIL.Image.fromarray(np.rint(np.clip(numpy_image, 0, 1) * 255.0).astype(np.uint8), 'RGB')
@@ -55,15 +64,15 @@ print(f'Splitting at index {split_idx}')
 common_model = tf.keras.Sequential(generator._layers[:split_idx])
 full_model = tf.keras.Sequential(generator._layers[split_idx:])
 
-input = tf.keras.layers.Input(common_model.output.shape[1:])
+input_var = tf.keras.layers.Input(common_model.output.shape[1:])
 conv = tf.keras.layers.Conv2D(
         filters=3,
         kernel_size=1,
         activation=None,
         padding='same',
-        name='to_rgb')(input)
+        name='to_rgb')(input_var)
 
-preview_model = tf.keras.Model(inputs=input, outputs=conv)
+preview_model = tf.keras.Model(inputs=input_var, outputs=conv)
 
 tf.keras.utils.plot_model(common_model,
                           to_file=os.path.join(OUTPUT_DIR, 'common.svg'),
@@ -82,9 +91,13 @@ rng = np.random.RandomState(1)
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
 loss_fn = tf.keras.losses.MeanSquaredError()
 
-for epoch_i in range(2):
-    for batch_i in range(1):
-        inputs = rng.standard_normal(size=(16, 512))
+threading.Thread(target=key_capture_thread).start()
+
+for epoch_i in range(1000):
+    for batch_i in range(100):
+        if exit_loop:
+            break
+        inputs = rng.standard_normal(size=(1, 512))
         intermediate = common_model.predict(inputs)
         outputs_full = full_model.predict(intermediate)
         targets = []
@@ -102,7 +115,10 @@ for epoch_i in range(2):
                 to_pil(targets[i]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
                 to_pil(outputs[i]).save(os.path.join(OUTPUT_DIR, f'output-{i:02d}.png'))
     print(f'Epoch {epoch_i} loss {loss_value}')
+    if exit_loop:
+        break
 
+print('Training done')
 
 # Test
 latents = np.random.RandomState(1000).randn(1000, *generator.input.shape[1:])  # 1000 random latents
