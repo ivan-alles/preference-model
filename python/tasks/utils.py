@@ -1,3 +1,4 @@
+import PIL
 import numpy as np
 
 def print_sizes(model):
@@ -13,3 +14,6 @@ def print_sizes(model):
         for w in layer.weights:
             weight_size = np.prod(w.shape)
             print(f'weight {w.shape} {weight_size}')
+
+def to_pil(numpy_image):
+    return PIL.Image.fromarray(np.rint(np.clip(numpy_image, 0, 1) * 255.0).astype(np.uint8), 'RGB')

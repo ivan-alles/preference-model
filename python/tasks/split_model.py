@@ -29,6 +29,7 @@ from tasks import utils
 
 PREVIEW_SIZE = 256
 OUTPUT_DIR = 'output'
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 exit_loop = False
 
@@ -38,10 +39,7 @@ def key_capture_thread():
     print("Interrupted by key press")
     exit_loop = True
 
-def to_pil(numpy_image):
-    return PIL.Image.fromarray(np.rint(np.clip(numpy_image, 0, 1) * 255.0).astype(np.uint8), 'RGB')
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 model_path = sys.argv[1]
 
@@ -119,8 +117,8 @@ for epoch_i in range(1000):
         optimizer.apply_gradients(zip(grads, preview_model.trainable_weights))
         if batch_i == 0:
             for i in range(len(targets)):
-                to_pil(targets[i]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
-                to_pil(outputs[i]).save(os.path.join(OUTPUT_DIR, f'output-{i:02d}.png'))
+                utils.to_pil(targets[i]).save(os.path.join(OUTPUT_DIR, f'target-{i:02d}.png'))
+                utils.to_pil(outputs[i]).save(os.path.join(OUTPUT_DIR, f'output-{i:02d}.png'))
     print(f'Epoch {epoch_i} loss {loss_value}')
     if exit_loop:
         break
@@ -136,8 +134,8 @@ preview_images = preview_model.predict(intermediate)
 full_images = full_model.predict(intermediate)
 
 for i in range(len(latents)):
-    to_pil(preview_images[i]).save(os.path.join(OUTPUT_DIR, f'preview-{i}.png'))
-    to_pil(full_images[i]).save(os.path.join(OUTPUT_DIR, f'full-{i}.png'))
+    utils.to_pil(preview_images[i]).save(os.path.join(OUTPUT_DIR, f'preview-{i}.png'))
+    utils.to_pil(full_images[i]).save(os.path.join(OUTPUT_DIR, f'full-{i}.png'))
 
 file_name, ext = os.path.splitext(os.path.basename(model_path))
 
