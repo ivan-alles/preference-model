@@ -65,21 +65,28 @@ common_model = tf.keras.Sequential(generator._layers[:split_idx])
 full_model = tf.keras.Sequential(generator._layers[split_idx:])
 
 input_var = tf.keras.layers.Input(common_model.output.shape[1:])
-conv = tf.keras.layers.Conv2D(
+y = tf.keras.layers.Conv2D(
+        filters=common_model.output.shape[1] // 2,
+        kernel_size=3,
+        activation=tf.nn.leaky_relu,
+        padding='same',
+        name='conv1')(input_var)
+
+y = tf.keras.layers.Conv2D(
         filters=3,
         kernel_size=1,
         activation=None,
         padding='same',
-        name='to_rgb')(input_var)
+        name='to_rgb')(y)
 
-preview_model = tf.keras.Model(inputs=input_var, outputs=conv)
+preview_model = tf.keras.Model(inputs=input_var, outputs=y)
 
 tf.keras.utils.plot_model(common_model,
-                          to_file=os.path.join(OUTPUT_DIR, 'common.svg'),
+                          to_file=os.path.join(OUTPUT_DIR, 'common_model.svg'),
                           dpi=50, show_shapes=True)
 
 tf.keras.utils.plot_model(full_model,
-                          to_file=os.path.join(OUTPUT_DIR, 'full.svg'),
+                          to_file=os.path.join(OUTPUT_DIR, 'full_model.svg'),
                           dpi=50, show_shapes=True)
 
 tf.keras.utils.plot_model(preview_model,
@@ -89,7 +96,7 @@ tf.keras.utils.plot_model(preview_model,
 rng = np.random.RandomState(1)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
-loss_fn = tf.keras.losses.MeanSquaredError()
+loss_fn = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
 
 threading.Thread(target=key_capture_thread).start()
 
