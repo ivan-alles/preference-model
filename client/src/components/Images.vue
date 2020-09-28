@@ -109,7 +109,12 @@
             <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
           </b-button>
         </ShareNetwork>
-        <img :src="fullPicture.preview" class="full-picture">
+        <template v-if="fullPicture.full !== null">
+          <img :src="fullPicture.full" class="full-picture">
+        </template>
+        <template v-else>
+          <img :src="fullPicture.preview" class="full-picture">
+        </template>
       </template>
     </template>
     <template v-if="state === stateKind.INIT">
@@ -145,6 +150,7 @@ class Picture {
   kind; // TODO(ia): remove this
   latents;
   preview;
+  full = null;
   liked = false;
 
   constructor(latents, preview, kind=null) {
@@ -160,7 +166,6 @@ class Picture {
   }
 }
 
-// TODO(ia): what if remove strings?
 const stateKind = {
     INIT: 'INIT',       // Loading models, etc.
     WORKING: 'WORKING', // Generating pictures
@@ -231,7 +236,7 @@ export default {
           const showParam = decodeURIComponent(this.$route.query['show']);
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
-          const enginePictures = await this.engine.generatePictures([latents], 'full');
+          const enginePictures = await this.engine.generatePictures([latents], 'preview');
           const picture = new Picture(enginePictures[0].latents, enginePictures[0].picture)
           this.pictures.push(picture);
           this.fullPicture = picture;
@@ -248,7 +253,15 @@ export default {
       while(this.state != stateKind.EXIT) {
         await sleep(50);
 
-        if(!this.isActive || this.fullPicture !== null) {
+        if(!this.isActive) {
+          continue;
+        }
+
+        if(this.fullPicture !== null) {
+          if(this.fullPicture.full === null) {
+            const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], 'full');
+            this.fullPicture.full = enginePictures[0].picture;
+          }
           continue;
         }
         
@@ -346,10 +359,7 @@ export default {
     },
 
     showFullPicture(picture) {
-      this.fullPicture = {
-        preview: picture.preview,
-        latents: picture.latents,
-      }
+      this.fullPicture = picture;
     },
 
     closeFullPicture() {
@@ -508,6 +518,8 @@ button {
   border-radius: 4px;
   box-shadow: 2px 2px 4px #0004;
   margin-top: 10px;  
+  width: 1024px; 
+  height: 1024px; 
 }
 
 .error {
