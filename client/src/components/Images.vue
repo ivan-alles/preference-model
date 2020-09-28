@@ -191,9 +191,6 @@ export default {
       cells: [],
       varianceSlider: 2,
       fullPicture: null,
-      // Make globals accessible in Vue rendering code
-      stateKind,
-      Picture
     };
   },
   computed: {
@@ -379,6 +376,10 @@ export default {
   },
 
   created() {
+    // Make globals accessible in Vue rendering code
+    this.stateKind = stateKind;
+    this.Picture = Picture;
+
     this.logger = new GoogleAnalyticsLogger(this.$ga);
     this.isActive = true;
     this.isRandomTriggered = true;
