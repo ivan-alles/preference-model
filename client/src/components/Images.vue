@@ -140,13 +140,18 @@ import { Engine } from '@/client-engine'
 import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
+  kind;
+  latents;
+  preview;
+  liked = false;
 
-  constructor(kind, latents=null, preview=null) {
-    this.kind = kind;
+  constructor(latents, preview, kind=Picture.kind.PICTURE) {
     this.latents = latents;
     this.preview = preview;
+    this.kind = kind;
   }
 
+  // TODO(ia): remove this
   static kind = {
     PICTURE: 'PICTURE',
     IN_PROGRESS: 'IN_PROGRESS',
@@ -154,8 +159,6 @@ class Picture {
     RANDOM: 'RANDOM',
   }
 }
-
-console.log('Picture', Picture.kind)
 
 const stateKind = {
     INIT: 'INIT',       // Loading models, etc.
@@ -228,16 +231,9 @@ export default {
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], 'full');
-          this.pictures.push({
-            preview: enginePictures[0].picture,
-            latents: enginePictures[0].latents,
-            liked: false,
-            kind: Picture.kind.PICTURE
-          });
-          this.fullPicture = {
-            preview: enginePictures[0].picture,
-            latents: enginePictures[0].latents
-          }
+          const picture = new Picture(enginePictures[0].latents, enginePictures[0].picture, Picture.kind.PICTURE)
+          this.pictures.push(picture);
+          this.fullPicture = picture;
         }       
 
         this.state = stateKind.WORKING;
@@ -279,7 +275,7 @@ export default {
         const size = 1;
         let newPictures = [];
         for(let i = 0; i < size; ++i) {
-          const picture = { kind: Picture.kind.IN_PROGRESS };
+          const picture = new Picture(null, null, Picture.kind.IN_PROGRESS);
           newPictures.push(picture);
           this.pictures.push(picture);
         }
@@ -289,7 +285,6 @@ export default {
           for(let i = 0; i < size; ++i) {
             newPictures[i].preview = enginePictures[i].picture;
             newPictures[i].latents = enginePictures[i].latents;
-            newPictures[i].liked = false;
             newPictures[i].kind = Picture.kind.PICTURE;
           }
         }
@@ -329,19 +324,16 @@ export default {
           pictures.push(like.preview)
       }
 
-      this.pictures.push({
-          kind: Picture.kind.LIKES,
-          likes: likes,
-          deprecatedLikedPictures: pictures
-      });
-
+      const likesPicture = new Picture(null, null, Picture.kind.LIKES);
+      likesPicture.likes = likes;
+      likesPicture.deprecatedLikedPictures = pictures;
+      this.pictures.push(likesPicture);
+      
       await this.engine.learn(latents);
     },
 
     async random() {
-        this.pictures.push({
-          kind: Picture.kind.RANDOM
-        });
+        this.pictures.push(new Picture(null, null, Picture.kind.RANDOM));
         await this.engine.learn([]);
     },
 
