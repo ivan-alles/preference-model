@@ -10,7 +10,8 @@ let MODEL_URLS =
 }
 
 class Generator {
-  constructor() {
+  constructor(logger) {
+    this.logger = logger;
     this.models = {};
   }
 
@@ -29,9 +30,10 @@ class Generator {
    * Generate pictures from latents.
    *
    * @param {Tensor} latents a [size, 512] tensor of latents.
+   * @param {string} model model name, either 'preview' or 'full'.
    * @returns {Object[]} an array of pictures.
    */
-  async generate(latents) {
+  async generate(latents, model) {
     let pictures = null;
     try {
       const size = latents.shape[0];
@@ -39,7 +41,28 @@ class Generator {
       let pictures = tf.tidy(() => {
         const t0 = performance.now();
         const intermediate = this.models['common'].predict(latents);
-        let output = this.models['preview'].predict(intermediate);
+
+        // If full has been deleted due to a prior error, replace it by the preview.
+        if(model == 'full' && !(model in this.models)) {
+          model = 'preview';
+        }
+
+        let output = null;
+
+        try {
+          output = this.models[model].predict(intermediate);
+        }
+        catch(err) {
+          if(model != 'full') {
+            throw err; // This is be a fatal error, will be caught up the stack
+          }
+          // Try to recover
+          this.logger.logException('Generator.generate.full', err);
+          this.models['full'].dispose();
+          delete this.models['full'];
+          output = this.models['preview'].predict(intermediate);
+        }
+
         output = tf.clipByValue(output, 0, 1.0);
         console.log("Generated tensor [" + output.shape + "] in " + Math.round(performance.now() - t0) + " ms.")
         // Convert to an array of tensors of shapes [H, W, 3]
@@ -156,6 +179,9 @@ class PreferenceModel {
  * Converts the data between UI (plain javascript data) to internal representations (tf.tensor).
  */
 export class Engine {
+  constructor(logger) {
+    this.logger = logger;
+  }
   async init() {
     // Do tf initialization here, before any usage of it.
     console.log('32-bit capable', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
@@ -172,7 +198,7 @@ export class Engine {
       console.log("Development mode");
     }
 
-    this.generator = new Generator();
+    this.generator = new Generator(this.logger);
     this.preferenceModel = new PreferenceModel();
 
     await this.generator.init();
@@ -183,13 +209,14 @@ export class Engine {
    * Create new pictures.
    * @param {number} size number of pictures.
    * @param {number} variance a number from 0 to 4 controlling the variance of the pictures.
+   * @param {string} model model name, either 'preview' or 'full'.
    */
-  async createPictures(size, variance) {
+  async createPictures(size, variance, model) {
     // console.log("tf.memory", tf.memory());
     let latentsTensor = null;
     try {
       const latentsTensor = tf.tidy(() => this.preferenceModel.generate(size, variance));
-      return await this.generatePicturesFromTensor(latentsTensor);
+      return await this.generatePicturesFromTensor(latentsTensor, model);
     }
     finally {
       tf.dispose(latentsTensor);
@@ -199,12 +226,13 @@ export class Engine {
   /**
    * Generate pictures from latents.
    * @param {number[][]} latents array of latent vectors.
+   * @param {string} model model name, either 'preview' or 'full'.
    */
-  async generatePictures(latents) {
+  async generatePictures(latents, model) {
     let latentsTensor = null;
     try {
       const latentsTensor = tf.tensor(latents);
-      return await this.generatePicturesFromTensor(latentsTensor);
+      return await this.generatePicturesFromTensor(latentsTensor, model);
     }
     finally {
       tf.dispose(latentsTensor);
@@ -214,9 +242,10 @@ export class Engine {
   /**
    * Generate pictures from a tensor of latents.
    * @param {Tensor} latentsTensor 
+   * @param {string} model model name, either 'preview' or 'full'.
    */
-  async generatePicturesFromTensor(latentsTensor) {
-    const pictures = await this.generator.generate(latentsTensor);
+  async generatePicturesFromTensor(latentsTensor, model) {
+    const pictures = await this.generator.generate(latentsTensor, model);
     const latents = await latentsTensor.array();
     const result = [];
     for(let i = 0; i < latentsTensor.shape[0]; ++i) {

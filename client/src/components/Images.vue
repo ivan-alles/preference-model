@@ -8,7 +8,7 @@
       <h1>Make a Person of Your Dreams</h1>
     </div>
     <template v-if="state === stateKind.WORKING">
-      <template v-if="largePicture === null">
+      <template v-if="fullPicture === null">
         <div id="stickyHeader">
           <span id="learn-wrapper" class="d-inline-block" tabindex="0">
             <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
@@ -59,7 +59,7 @@
         <div class="flex-container content">
           <div v-for="(cell, index) in cells" :key="index" class="cell">
             <template v-if="cell.kind === cellKind.PICTURE" >
-              <img :src="cell.picture" class="picture" @click="showLargePicture(cell)">
+              <img :src="cell.picture" class="picture" @click="showFullPicture(cell)">
               <span v-if="cell.liked">
                 <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button liked"></b-icon>
               </span>
@@ -94,7 +94,7 @@
         </div>
       </template>
       <template v-else>
-        <b-button @click="closeLargePicture()" variant="primary">
+        <b-button @click="closeFullPicture()" variant="primary">
           <b-icon icon="arrow-left-short" ></b-icon>
           Continue
         </b-button>
@@ -107,7 +107,7 @@
             <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
           </b-button>
         </ShareNetwork>
-        <img :src="largePicture.picture" class="large-picture">
+        <img :src="fullPicture.picture" class="full-picture">
       </template>
     </template>
     <template v-if="state === stateKind.INIT">
@@ -153,13 +153,39 @@ const stateKind = {
     ERROR: 'ERROR',     // Fatal error, cannot work.
 }
 
+class GoogleAnalyticsLogger {
+  constructor(ga) {
+    this.ga = ga;
+  }
+
+  log(category, action, label, value=1) {
+    console.log(category, action, label, value);
+    this.ga.event({
+      eventCategory: category,
+      eventAction: action,
+      eventLabel: label,
+      eventValue: value
+    });
+  }
+
+  logException(action, exception, value=1) {
+    console.error(exception);
+    this.ga.event({
+      eventCategory: 'LogError',
+      eventAction: action,
+      eventLabel: exception.stack,
+      eventValue: value
+    });
+  }
+}
+
 export default {
   data() {
     return {
       state: stateKind.INIT,
       cells: [],
       varianceSlider: 2,
-      largePicture: null,
+      fullPicture: null,
       // Make enums accessible in Vue code
       cellKind, 
       stateKind
@@ -193,14 +219,14 @@ export default {
           const showParam = decodeURIComponent(this.$route.query['show']);
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
-          const enginePictures = await this.engine.generatePictures([latents]);
+          const enginePictures = await this.engine.generatePictures([latents], 'full');
           this.cells.push({
             picture: enginePictures[0].picture,
             latents: enginePictures[0].latents,
             liked: false,
             kind: cellKind.PICTURE
           });
-          this.largePicture = {
+          this.fullPicture = {
             picture: enginePictures[0].picture,
             latents: enginePictures[0].latents
           }
@@ -217,7 +243,7 @@ export default {
       while(this.state != stateKind.EXIT) {
         await sleep(50);
 
-        if(!this.isActive || this.largePicture !== null) {
+        if(!this.isActive || this.fullPicture !== null) {
           continue;
         }
         
@@ -251,7 +277,7 @@ export default {
         }
 
         try {
-          const enginePictures = await this.engine.createPictures(size, this.varianceSlider);
+          const enginePictures = await this.engine.createPictures(size, this.varianceSlider, 'preview');
           for(let i = 0; i < size; ++i) {
             newCells[i].picture = enginePictures[i].picture;
             newCells[i].latents = enginePictures[i].latents;
@@ -260,14 +286,8 @@ export default {
           }
         }
         catch(err) {
-          console.error(err);
           this.state = stateKind.ERROR;
-          this.$ga.event({
-            eventCategory: 'LogError',
-            eventAction: 'Images.getPicturesTask.createPictures',
-            eventLabel: err.stack,
-            eventValue: 1
-          });
+          this.logger.logException('Images.getPicturesTask.createPictures', err);
           return;
         }
       }
@@ -325,15 +345,15 @@ export default {
       cell.liked = !cell.liked;
     },
 
-    showLargePicture(cell) {
-      this.largePicture = {
+    showFullPicture(cell) {
+      this.fullPicture = {
         picture: cell.picture,
         latents: cell.latents,
       }
     },
 
-    closeLargePicture() {
-      this.largePicture = null;
+    closeFullPicture() {
+      this.fullPicture = null;
     },
 
     relike(cell) {
@@ -344,7 +364,7 @@ export default {
 
     shareUrl() {
       const url = window.location.href + '?show=' + 
-        encodeURIComponent(float32ArrayToBase64(this.largePicture.latents));
+        encodeURIComponent(float32ArrayToBase64(this.fullPicture.latents));
       return url;
     },
 
@@ -354,10 +374,11 @@ export default {
   },
 
   created() {
+    this.logger = new GoogleAnalyticsLogger(this.$ga);
     this.isActive = true;
     this.isRandomTriggered = true;
     this.isLearningTriggered = false;
-    this.engine = new Engine();
+    this.engine = new Engine(this.logger);
   },
 
   mounted() {
@@ -479,7 +500,7 @@ button {
   margin: 0 0.5rem 0 0;
 }
 
-.large-picture {
+.full-picture {
   border-radius: 4px;
   box-shadow: 2px 2px 4px #0004;
   margin-top: 10px;  
