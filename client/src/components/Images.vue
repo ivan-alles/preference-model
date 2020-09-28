@@ -59,7 +59,7 @@
         <div class="flex-container content">
           <div v-for="(cell, index) in cells" :key="index" class="cell">
             <template v-if="cell.kind === Picture.kind.PICTURE" >
-              <img :src="cell.picture" class="picture" @click="showFullPicture(cell)">
+              <img :src="cell.preview" class="preview-picture" @click="showFullPicture(cell)">
               <span v-if="cell.liked">
                 <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button liked"></b-icon>
               </span>
@@ -73,7 +73,7 @@
                 Likes
               </h4>
               <div class="likes-picture-row" @click="relike(cell)">
-                <div v-for="(picture, index) in cell.pictures" :key="index" class="likes-picture-col">
+                <div v-for="(picture, index) in cell.deprecatedLikedPictures" :key="index" class="likes-picture-col">
                   <img :src="picture" class="likes-picture">
                 </div>
               </div>
@@ -107,7 +107,7 @@
             <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
           </b-button>
         </ShareNetwork>
-        <img :src="fullPicture.picture" class="full-picture">
+        <img :src="fullPicture.preview" class="full-picture">
       </template>
     </template>
     <template v-if="state === stateKind.INIT">
@@ -140,6 +140,12 @@ import { Engine } from '@/client-engine'
 import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
+
+  constructor(kind, latents=null, preview=null) {
+    this.kind = kind;
+    this.latents = latents;
+    this.preview = preview;
+  }
 
   static kind = {
     PICTURE: 'PICTURE',
@@ -223,13 +229,13 @@ export default {
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], 'full');
           this.cells.push({
-            picture: enginePictures[0].picture,
+            preview: enginePictures[0].picture,
             latents: enginePictures[0].latents,
             liked: false,
             kind: Picture.kind.PICTURE
           });
           this.fullPicture = {
-            picture: enginePictures[0].picture,
+            preview: enginePictures[0].picture,
             latents: enginePictures[0].latents
           }
         }       
@@ -281,7 +287,7 @@ export default {
         try {
           const enginePictures = await this.engine.createPictures(size, this.varianceSlider, 'preview');
           for(let i = 0; i < size; ++i) {
-            newCells[i].picture = enginePictures[i].picture;
+            newCells[i].preview = enginePictures[i].picture;
             newCells[i].latents = enginePictures[i].latents;
             newCells[i].liked = false;
             newCells[i].kind = Picture.kind.PICTURE;
@@ -320,13 +326,13 @@ export default {
       for(let like of likes) {
           like.liked = false;
           latents.push(like.latents);
-          pictures.push(like.picture)
+          pictures.push(like.preview)
       }
 
       this.cells.push({
           kind: Picture.kind.LIKES,
           likes: likes,
-          pictures: pictures
+          deprecatedLikedPictures: pictures
       });
 
       await this.engine.learn(latents);
@@ -349,7 +355,7 @@ export default {
 
     showFullPicture(cell) {
       this.fullPicture = {
-        picture: cell.picture,
+        preview: cell.preview,
         latents: cell.latents,
       }
     },
@@ -461,7 +467,7 @@ function sleep(ms) {
   margin-bottom: 10px;
 }
 
-.picture {
+.preview-picture {
     height: 100%;
     width: 100%; 
     object-fit: contain;
