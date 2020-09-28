@@ -2,24 +2,27 @@
 import * as tf from '@tensorflow/tfjs';
 import {loadGraphModel} from '@tensorflow/tfjs-converter';
 
-let MODEL_URL = '/karras2018iclr-celebahq-256x256.tfjs/model.json';
+let MODEL_URLS = 
+{   
+  common: '/karras2018iclr-celebahq-1024x1024-common.tfjs/model.json',
+  preview: '/karras2018iclr-celebahq-1024x1024-preview.tfjs/model.json',
+  full: '/karras2018iclr-celebahq-1024x1024-full.tfjs/model.json'
+}
 
 class Generator {
   constructor() {
-    this.model = null;
+    this.models = {};
   }
 
   async init() {
-    if (process.env.NODE_ENV === "production" ) {
-      MODEL_URL = '/preference-model' + MODEL_URL;      
+    for (let [key, url] of Object.entries(MODEL_URLS)) {
+      if (process.env.NODE_ENV === "production" ) {
+        url = '/preference-model' + url;      
+      }
+      console.log(`Loading model ${url} ...`)
+      this.models[key] = await loadGraphModel(url);
+      console.log(`Model loaded`)
     }
-    
-    // Test downloading
-    // let MODEL_URL = 'https://ivan-alles.github.io/preference-model/karras2018iclr-celebahq-1024x1024.tfjs/model.json';
-
-    console.log(`Loading model ${MODEL_URL} ...`)
-    this.model = await loadGraphModel(MODEL_URL);
-    console.log(`Model loaded`)
   }
 
   /**
@@ -35,7 +38,8 @@ class Generator {
 
       let pictures = tf.tidy(() => {
         const t0 = performance.now();
-        let output = this.model.predict(latents);
+        const intermediate = this.models['common'].predict(latents);
+        let output = this.models['preview'].predict(intermediate);
         output = tf.clipByValue(output, 0, 1.0);
         console.log("Generated tensor [" + output.shape + "] in " + Math.round(performance.now() - t0) + " ms.")
         // Convert to an array of tensors of shapes [H, W, 3]
