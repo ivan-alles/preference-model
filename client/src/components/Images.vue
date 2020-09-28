@@ -57,34 +57,34 @@
           </b-container>  
         </div>
         <div class="flex-container content">
-          <div v-for="(cell, index) in cells" :key="index" class="cell">
-            <template v-if="cell.kind === Picture.kind.PICTURE" >
-              <img :src="cell.preview" class="preview-picture" @click="showFullPicture(cell)">
-              <span v-if="cell.liked">
-                <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button liked"></b-icon>
+          <div v-for="(picture, index) in pictures" :key="index" class="picture">
+            <template v-if="picture.kind === Picture.kind.PICTURE" >
+              <img :src="picture.preview" class="preview-picture" @click="showFullPicture(picture)">
+              <span v-if="picture.liked">
+                <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
               </span>
               <span v-else>
-                <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
+                <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
               </span>
             </template>
-            <template v-else-if="cell.kind === Picture.kind.LIKES">
+            <template v-else-if="picture.kind === Picture.kind.LIKES">
               <h4>
-                <b-icon icon="heart" @click="relike(cell)"></b-icon>
+                <b-icon icon="heart" @click="relike(picture)"></b-icon>
                 Likes
               </h4>
-              <div class="likes-picture-row" @click="relike(cell)">
-                <div v-for="(picture, index) in cell.deprecatedLikedPictures" :key="index" class="likes-picture-col">
+              <div class="likes-picture-row" @click="relike(picture)">
+                <div v-for="(picture, index) in picture.deprecatedLikedPictures" :key="index" class="likes-picture-col">
                   <img :src="picture" class="likes-picture">
                 </div>
               </div>
             </template>   
-            <template v-else-if="cell.kind === Picture.kind.IN_PROGRESS">
+            <template v-else-if="picture.kind === Picture.kind.IN_PROGRESS">
               <h4>
                 <b-spinner variant="secondary" label="Dreaming"></b-spinner>
                 Dreaming
               </h4>
             </template>            
-            <template v-else-if="cell.kind === Picture.kind.RANDOM">
+            <template v-else-if="picture.kind === Picture.kind.RANDOM">
               <h4>
                 <b-icon icon="dice6" ></b-icon>
                 Random
@@ -194,14 +194,14 @@ export default {
   data() {
     return {
       state: stateKind.INIT,
-      cells: [],
+      pictures: [],
       varianceSlider: 2,
       fullPicture: null,
     };
   },
   computed: {
     findLikes() {
-      let likes = this.cells.filter(cell => cell.kind === Picture.kind.PICTURE && cell.liked);
+      let likes = this.pictures.filter(picture => picture.kind === Picture.kind.PICTURE && picture.liked);
       return likes;
     },
 
@@ -228,7 +228,7 @@ export default {
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], 'full');
-          this.cells.push({
+          this.pictures.push({
             preview: enginePictures[0].picture,
             latents: enginePictures[0].latents,
             liked: false,
@@ -277,20 +277,20 @@ export default {
         }        
 
         const size = 1;
-        let newCells = [];
+        let newPictures = [];
         for(let i = 0; i < size; ++i) {
-          const cell = { kind: Picture.kind.IN_PROGRESS };
-          newCells.push(cell);
-          this.cells.push(cell);
+          const picture = { kind: Picture.kind.IN_PROGRESS };
+          newPictures.push(picture);
+          this.pictures.push(picture);
         }
 
         try {
           const enginePictures = await this.engine.createPictures(size, this.varianceSlider, 'preview');
           for(let i = 0; i < size; ++i) {
-            newCells[i].preview = enginePictures[i].picture;
-            newCells[i].latents = enginePictures[i].latents;
-            newCells[i].liked = false;
-            newCells[i].kind = Picture.kind.PICTURE;
+            newPictures[i].preview = enginePictures[i].picture;
+            newPictures[i].latents = enginePictures[i].latents;
+            newPictures[i].liked = false;
+            newPictures[i].kind = Picture.kind.PICTURE;
           }
         }
         catch(err) {
@@ -329,7 +329,7 @@ export default {
           pictures.push(like.preview)
       }
 
-      this.cells.push({
+      this.pictures.push({
           kind: Picture.kind.LIKES,
           likes: likes,
           deprecatedLikedPictures: pictures
@@ -339,24 +339,24 @@ export default {
     },
 
     async random() {
-        this.cells.push({
+        this.pictures.push({
           kind: Picture.kind.RANDOM
         });
         await this.engine.learn([]);
     },
 
     deleteAllPictures() {
-        this.cells = [];
+        this.pictures = [];
     },    
 
-    toggleLike(cell) {
-      cell.liked = !cell.liked;
+    toggleLike(picture) {
+      picture.liked = !picture.liked;
     },
 
-    showFullPicture(cell) {
+    showFullPicture(picture) {
       this.fullPicture = {
-        preview: cell.preview,
-        latents: cell.latents,
+        preview: picture.preview,
+        latents: picture.latents,
       }
     },
 
@@ -364,8 +364,8 @@ export default {
       this.fullPicture = null;
     },
 
-    relike(cell) {
-      for(let like of cell.likes) {
+    relike(picture) {
+      for(let like of picture.likes) {
           like.liked = true;
       }
     },
@@ -450,7 +450,7 @@ function sleep(ms) {
   flex-wrap: wrap;
 }
 
-.cell { 
+.picture { 
   width: 200px;
   height: 200px;
   margin: 5px;
@@ -462,7 +462,7 @@ function sleep(ms) {
   box-shadow: 2px 2px 4px #0004;
 } 
 
-.cell h4 { 
+.picture h4 { 
   margin-top: 5px;
   margin-bottom: 10px;
 }
