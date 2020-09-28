@@ -58,7 +58,7 @@
         </div>
         <div class="flex-container content">
           <div v-for="(cell, index) in cells" :key="index" class="cell">
-            <template v-if="cell.kind === cellKind.PICTURE" >
+            <template v-if="cell.kind === Picture.kind.PICTURE" >
               <img :src="cell.picture" class="picture" @click="showFullPicture(cell)">
               <span v-if="cell.liked">
                 <b-icon icon="heart-fill" @click="toggleLike(cell)" class="like-button liked"></b-icon>
@@ -67,7 +67,7 @@
                 <b-icon icon="heart" @click="toggleLike(cell)" class="like-button"></b-icon>
               </span>
             </template>
-            <template v-else-if="cell.kind === cellKind.LIKES">
+            <template v-else-if="cell.kind === Picture.kind.LIKES">
               <h4>
                 <b-icon icon="heart" @click="relike(cell)"></b-icon>
                 Likes
@@ -78,13 +78,13 @@
                 </div>
               </div>
             </template>   
-            <template v-else-if="cell.kind === cellKind.IN_PROGRESS">
+            <template v-else-if="cell.kind === Picture.kind.IN_PROGRESS">
               <h4>
                 <b-spinner variant="secondary" label="Dreaming"></b-spinner>
                 Dreaming
               </h4>
             </template>            
-            <template v-else-if="cell.kind === cellKind.RANDOM">
+            <template v-else-if="cell.kind === Picture.kind.RANDOM">
               <h4>
                 <b-icon icon="dice6" ></b-icon>
                 Random
@@ -139,12 +139,17 @@
 import { Engine } from '@/client-engine'
 import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
-const cellKind = {
+class Picture {
+
+  static kind = {
     PICTURE: 'PICTURE',
     IN_PROGRESS: 'IN_PROGRESS',
     LIKES: 'LIKES',
     RANDOM: 'RANDOM',
+  }
 }
+
+console.log('Picture', Picture.kind)
 
 const stateKind = {
     INIT: 'INIT',       // Loading models, etc.
@@ -186,14 +191,14 @@ export default {
       cells: [],
       varianceSlider: 2,
       fullPicture: null,
-      // Make enums accessible in Vue code
-      cellKind, 
-      stateKind
+      // Make globals accessible in Vue rendering code
+      stateKind,
+      Picture
     };
   },
   computed: {
     findLikes() {
-      let likes = this.cells.filter(cell => cell.kind === cellKind.PICTURE && cell.liked);
+      let likes = this.cells.filter(cell => cell.kind === Picture.kind.PICTURE && cell.liked);
       return likes;
     },
 
@@ -224,7 +229,7 @@ export default {
             picture: enginePictures[0].picture,
             latents: enginePictures[0].latents,
             liked: false,
-            kind: cellKind.PICTURE
+            kind: Picture.kind.PICTURE
           });
           this.fullPicture = {
             picture: enginePictures[0].picture,
@@ -271,7 +276,7 @@ export default {
         const size = 1;
         let newCells = [];
         for(let i = 0; i < size; ++i) {
-          const cell = { kind: cellKind.IN_PROGRESS };
+          const cell = { kind: Picture.kind.IN_PROGRESS };
           newCells.push(cell);
           this.cells.push(cell);
         }
@@ -282,7 +287,7 @@ export default {
             newCells[i].picture = enginePictures[i].picture;
             newCells[i].latents = enginePictures[i].latents;
             newCells[i].liked = false;
-            newCells[i].kind = cellKind.PICTURE;
+            newCells[i].kind = Picture.kind.PICTURE;
           }
         }
         catch(err) {
@@ -322,7 +327,7 @@ export default {
       }
 
       this.cells.push({
-          kind: cellKind.LIKES,
+          kind: Picture.kind.LIKES,
           likes: likes,
           pictures: pictures
       });
@@ -332,7 +337,7 @@ export default {
 
     async random() {
         this.cells.push({
-          kind: cellKind.RANDOM
+          kind: Picture.kind.RANDOM
         });
         await this.engine.learn([]);
     },
