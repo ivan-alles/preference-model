@@ -58,14 +58,22 @@
         </div>
         <div class="flex-container content">
           <div v-for="(picture, index) in pictures" :key="index" class="picture">
-            <template v-if="picture.kind === Picture.kind.PICTURE" >
-              <img :src="picture.preview" class="preview-picture" @click="showFullPicture(picture)">
-              <span v-if="picture.liked">
-                <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
-              </span>
-              <span v-else>
-                <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
-              </span>
+            <template v-if="picture.kind === null" >
+              <template v-if="picture.preview !== null">
+                <img :src="picture.preview" class="preview-picture" @click="showFullPicture(picture)">
+                <span v-if="picture.liked">
+                  <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
+                </span>
+                <span v-else>
+                  <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
+                </span>
+              </template>
+              <template v-else>
+                <h4>
+                  <b-spinner variant="secondary" label="Dreaming"></b-spinner>
+                  Dreaming
+                </h4>
+              </template>               
             </template>
             <template v-else-if="picture.kind === Picture.kind.LIKES">
               <h4>
@@ -77,13 +85,7 @@
                   <img :src="picture" class="likes-picture">
                 </div>
               </div>
-            </template>   
-            <template v-else-if="picture.kind === Picture.kind.IN_PROGRESS">
-              <h4>
-                <b-spinner variant="secondary" label="Dreaming"></b-spinner>
-                Dreaming
-              </h4>
-            </template>            
+            </template>             
             <template v-else-if="picture.kind === Picture.kind.RANDOM">
               <h4>
                 <b-icon icon="dice6" ></b-icon>
@@ -140,12 +142,12 @@ import { Engine } from '@/client-engine'
 import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
-  kind;
+  kind; // TODO(ia): remove this
   latents;
   preview;
   liked = false;
 
-  constructor(latents, preview, kind=Picture.kind.PICTURE) {
+  constructor(latents, preview, kind=null) {
     this.latents = latents;
     this.preview = preview;
     this.kind = kind;
@@ -153,13 +155,12 @@ class Picture {
 
   // TODO(ia): remove this
   static kind = {
-    PICTURE: 'PICTURE',
-    IN_PROGRESS: 'IN_PROGRESS',
     LIKES: 'LIKES',
     RANDOM: 'RANDOM',
   }
 }
 
+// TODO(ia): what if remove strings?
 const stateKind = {
     INIT: 'INIT',       // Loading models, etc.
     WORKING: 'WORKING', // Generating pictures
@@ -204,7 +205,7 @@ export default {
   },
   computed: {
     findLikes() {
-      let likes = this.pictures.filter(picture => picture.kind === Picture.kind.PICTURE && picture.liked);
+      let likes = this.pictures.filter(picture => picture.kind === null && picture.liked);
       return likes;
     },
 
@@ -231,7 +232,7 @@ export default {
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], 'full');
-          const picture = new Picture(enginePictures[0].latents, enginePictures[0].picture, Picture.kind.PICTURE)
+          const picture = new Picture(enginePictures[0].latents, enginePictures[0].picture)
           this.pictures.push(picture);
           this.fullPicture = picture;
         }       
@@ -275,7 +276,7 @@ export default {
         const size = 1;
         let newPictures = [];
         for(let i = 0; i < size; ++i) {
-          const picture = new Picture(null, null, Picture.kind.IN_PROGRESS);
+          const picture = new Picture(null, null);
           newPictures.push(picture);
           this.pictures.push(picture);
         }
@@ -285,7 +286,6 @@ export default {
           for(let i = 0; i < size; ++i) {
             newPictures[i].preview = enginePictures[i].picture;
             newPictures[i].latents = enginePictures[i].latents;
-            newPictures[i].kind = Picture.kind.PICTURE;
           }
         }
         catch(err) {
