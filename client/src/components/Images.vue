@@ -121,6 +121,9 @@
         <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
         Error
       </h4>
+      <p>
+      This app works on a desktop with an NVIDIA graphic card. Other devices may not be supported.
+      </p>
       <b-button @click="reload()" variant="primary">
         <b-icon icon="bootstrap-reboot"></b-icon>
           Reload
