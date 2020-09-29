@@ -518,8 +518,8 @@ button {
   border-radius: 4px;
   box-shadow: 2px 2px 4px #0004;
   margin-top: 10px;  
-  width: 1024px; 
-  height: 1024px; 
+  width: 100%; 
+  height: 100%; 
 }
 
 .error {
