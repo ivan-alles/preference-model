@@ -236,8 +236,8 @@ export default {
           const showParam = decodeURIComponent(this.$route.query['show']);
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
-          const enginePictures = await this.engine.generatePictures([latents], 'preview');
-          const picture = new Picture(enginePictures[0].latents, enginePictures[0].picture)
+          const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);
+          const picture = new Picture(enginePictures[0]);
           this.pictures.push(picture);
           this.fullPicture = picture;
         }       
@@ -259,8 +259,8 @@ export default {
 
         if(this.fullPicture !== null) {
           if(this.fullPicture.full === null) {
-            const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], 'full');
-            this.fullPicture.full = enginePictures[0].picture;
+            const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], ['full']);
+            this.fullPicture.full = enginePictures[0].full;
           }
           continue;
         }
@@ -295,9 +295,9 @@ export default {
         }
 
         try {
-          const enginePictures = await this.engine.createPictures(size, this.varianceSlider, 'preview');
+          const enginePictures = await this.engine.createPictures(size, this.varianceSlider, ['preview']);
           for(let i = 0; i < size; ++i) {
-            newPictures[i].preview = enginePictures[i].picture;
+            newPictures[i].preview = enginePictures[i].preview;
             newPictures[i].latents = enginePictures[i].latents;
           }
         }
