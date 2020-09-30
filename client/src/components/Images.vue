@@ -32,7 +32,7 @@
           <b-container>
             <template v-if="isRandom()">
               <p>Making random pictures.</p>
-              <p>Like some to create similar ones.</p>
+              <p>Like some pictures to dream similar ones.</p>
             </template>
             <template v-else>
               <div class="flex-container content">
@@ -333,9 +333,9 @@ function sleep(ms) {
 }
 
 .picture { 
-  width: 200px;
-  height: 200px;
-  margin: 5px;
+  width: 180px;
+  height: 180px;
+  margin: 2px;
   text-align: center;
   /* For like button positioning to work. */
   position: relative;
@@ -412,7 +412,7 @@ button {
   left: 0;
   bottom: 0;
   width: 100%;
-  padding: 5px;
+  padding: 2px 5px 2px 5px;
   /* TODO(ia): add shadow at the top.*/
   background-color: #f7f7f9f0;
 }
