@@ -9,7 +9,45 @@
     </div>
     <template v-if="state === stateKind.WORKING">
       <template v-if="fullPicture === null">
-        <div id="stickyHeader">
+        <div class="flex-container content">
+          <div v-for="(picture, index) in pictures" :key="index" class="picture">
+            <template v-if="picture.kind === null" >
+              <template v-if="picture.preview !== null">
+                <img :src="picture.preview" class="preview-picture" @click="showFullPicture(picture)">
+                <span v-if="picture.liked">
+                  <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
+                </span>
+                <span v-else>
+                  <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
+                </span>
+              </template>
+              <template v-else>
+                <h4>
+                  <b-spinner variant="secondary" label="Dreaming"></b-spinner>
+                  Dreaming
+                </h4>
+              </template>               
+            </template>
+            <template v-else-if="picture.kind === Picture.kind.LIKES">
+              <h4>
+                <b-icon icon="heart" @click="relike(picture)"></b-icon>
+                Likes
+              </h4>
+              <div class="likes-picture-row" @click="relike(picture)">
+                <div v-for="(picture, index) in picture.deprecatedLikedPictures" :key="index" class="likes-picture-col">
+                  <img :src="picture" class="likes-picture">
+                </div>
+              </div>
+            </template>             
+            <template v-else-if="picture.kind === Picture.kind.RANDOM">
+              <h4>
+                <b-icon icon="dice6" ></b-icon>
+                Random
+              </h4>
+            </template>   
+          </div>
+        </div>
+        <div class="footer">
           <span id="learn-wrapper" class="d-inline-block" tabindex="0">
             <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
               <b-icon icon="heart"></b-icon>
@@ -55,45 +93,7 @@
               </b-col>
             </b-row>
           </b-container>  
-        </div>
-        <div class="flex-container content">
-          <div v-for="(picture, index) in pictures" :key="index" class="picture">
-            <template v-if="picture.kind === null" >
-              <template v-if="picture.preview !== null">
-                <img :src="picture.preview" class="preview-picture" @click="showFullPicture(picture)">
-                <span v-if="picture.liked">
-                  <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
-                </span>
-                <span v-else>
-                  <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
-                </span>
-              </template>
-              <template v-else>
-                <h4>
-                  <b-spinner variant="secondary" label="Dreaming"></b-spinner>
-                  Dreaming
-                </h4>
-              </template>               
-            </template>
-            <template v-else-if="picture.kind === Picture.kind.LIKES">
-              <h4>
-                <b-icon icon="heart" @click="relike(picture)"></b-icon>
-                Likes
-              </h4>
-              <div class="likes-picture-row" @click="relike(picture)">
-                <div v-for="(picture, index) in picture.deprecatedLikedPictures" :key="index" class="likes-picture-col">
-                  <img :src="picture" class="likes-picture">
-                </div>
-              </div>
-            </template>             
-            <template v-else-if="picture.kind === Picture.kind.RANDOM">
-              <h4>
-                <b-icon icon="dice6" ></b-icon>
-                Random
-              </h4>
-            </template>   
-          </div>
-        </div>
+        </div>        
       </template>
       <template v-else>
         <b-button @click="closeFullPicture()" variant="primary">
@@ -136,7 +136,6 @@
           Reload
         </b-button>
     </template>
-
   </b-container>
 </template>
 
@@ -416,19 +415,6 @@ export default {
 
 };
 
-window.onscroll = function() {stickyHeader()};
-
-function stickyHeader() {
-  var header = document.getElementById('stickyHeader');
-  var sticky = header.offsetTop;
-
-  if (window.pageYOffset > sticky) {
-    header.classList.add('sticky');
-  } else {
-    header.classList.remove('sticky');
-  }
-}
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -436,20 +422,6 @@ function sleep(ms) {
 </script>
 
 <style scoped>
-
-.sticky {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 100;
-  /* A counter-measure against the default transparent background. */
-  background-color: #ffffff;
-}
-
-.sticky + .content {
-  margin-top: 130px;
-  z-index: 10;
-}
 
 .flex-container {
   display: flex;
@@ -528,6 +500,16 @@ button {
 
 .error {
   color: var(--danger);
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 5px;
+  
+  background-color: #FFFFFFF0;
 }
 
 </style>
