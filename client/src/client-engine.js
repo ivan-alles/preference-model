@@ -17,7 +17,7 @@ class Generator {
 
   async init() {
     for (let [key, url] of Object.entries(MODEL_URLS)) {
-      if (process.env.NODE_ENV === "production" ) {
+      if (process.env.NODE_ENV === 'production' ) {
         url = '/preference-model' + url;      
       }
       console.log(`Loading model ${url} ...`)
@@ -50,7 +50,7 @@ class Generator {
     let intermediate = null;
     try {
       intermediate = this.models['common'].predict(latents);
-      let canvas = document.createElement("canvas");
+      let canvas = document.createElement('canvas');
       for(const modelName of modelNames) {
         if(!this.models[modelName]) {
           // We could have delete a model due to an error.
@@ -94,7 +94,7 @@ class Generator {
         await tf.browser.toPixels(pictures[i], canvas);
         // Use JPEG compression as potentially more compact.
         // The performance with the default quality is better than PNG.
-        result[i] = canvas.toDataURL("image/jpg");
+        result[i] = canvas.toDataURL('image/jpg');
       }
     }
     catch(error) {
@@ -173,7 +173,7 @@ class PreferenceModel {
 
     let outputPhi = null;
     if (k == 1) {
-      // Only one training example, it will be varied later by a normal "noise".
+      // Only one training example, it will be varied later by a normal 'noise'.
       outputPhi = phi.broadcastTo([size, phi.shape[1]]);
     }
     else {
@@ -214,12 +214,12 @@ export class Engine {
     // Switch off the convolution algo conv2dWithIm2Row() with very high memory requirements.
     tf.ENV.set('WEBGL_CONV_IM2COL', false)
 
-    if (process.env.NODE_ENV === "production" ) {
-      console.log("Production mode");
+    if (process.env.NODE_ENV === 'production' ) {
+      console.log('Production mode');
       tf.enableProdMode();
     }
     else {
-      console.log("Development mode");
+      console.log('Development mode');
     }
 
     this.generator = new Generator(this.logger);
@@ -237,7 +237,7 @@ export class Engine {
    * @returns {Object} a object with fields latents, preview, full.
    */
   async createPictures(size, variance, modelNames) {
-    // console.log("tf.memory", tf.memory());
+    // console.log('tf.memory', tf.memory());
     let latentsTensor = null;
     try {
       const latentsTensor = tf.tidy(() => this.preferenceModel.generate(size, variance));

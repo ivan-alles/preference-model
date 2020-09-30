@@ -383,7 +383,7 @@ export default {
     },
 
     shareTitle() {
-      return "Make a Person of Your Dreams";
+      return 'Make a Person of Your Dreams';
     },
   },
 
@@ -410,7 +410,7 @@ export default {
   watch: {
     $route(to, from) { // eslint-disable-line
       // Activate this component when the router points to it.
-      this.isActive = to.name === "Home";
+      this.isActive = to.name === 'Home';
     }
   },
 
@@ -419,13 +419,13 @@ export default {
 window.onscroll = function() {stickyHeader()};
 
 function stickyHeader() {
-  var header = document.getElementById("stickyHeader");
+  var header = document.getElementById('stickyHeader');
   var sticky = header.offsetTop;
 
   if (window.pageYOffset > sticky) {
-    header.classList.add("sticky");
+    header.classList.add('sticky');
   } else {
-    header.classList.remove("sticky");
+    header.classList.remove('sticky');
   }
 }
 
