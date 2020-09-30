@@ -48,47 +48,49 @@
           </div>
         </div>
         <div class="footer">
-          <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-            <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
-              <b-icon icon="heart"></b-icon>
-              Learn
-            </b-button>
-          </span>
-          <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
-            <template v-if="isLearningEnabled">
-              Learn from likes
-            </template>
-            <template v-else>
-              Like some pictures to learn from them
-            </template>      
-          </b-tooltip>
-          <span id="random-wrapper" class="d-inline-block" tabindex="0">
-            <b-button @click="triggerRandom()" variant="secondary" :disabled="isRandom()">
-              <b-icon icon="dice6" ></b-icon>
-              Random
-            </b-button>
-          </span>
-          <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
-            <template v-if="! isRandom()">
-              Forget learning and make random pictures
-            </template>
-            <template v-else>
-              Already making random pictures
-            </template>      
-          </b-tooltip>      
-          <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary">
-            <b-icon icon="trash" ></b-icon>
-            Delete all
-          </b-button>
-          <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
-            Delete all pictures
-          </b-tooltip>
           <b-container>
+            <b-row>
+              <span id="learn-wrapper" class="d-inline-block" tabindex="0">
+                <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
+                  <b-icon icon="heart"></b-icon>
+                  Learn
+                </b-button>
+              </span>
+              <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
+                <template v-if="isLearningEnabled">
+                  Learn from likes
+                </template>
+                <template v-else>
+                  Like some pictures to learn from them
+                </template>      
+              </b-tooltip>
+              <span id="random-wrapper" class="d-inline-block" tabindex="0">
+                <b-button @click="triggerRandom()" variant="secondary" :disabled="isRandom()">
+                  <b-icon icon="dice6" ></b-icon>
+                  Random
+                </b-button>
+              </span>
+              <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
+                <template v-if="! isRandom()">
+                  Forget learning and make random pictures
+                </template>
+                <template v-else>
+                  Already making random pictures
+                </template>      
+              </b-tooltip>      
+              <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary">
+                <b-icon icon="trash" ></b-icon>
+                Delete all
+              </b-button>
+              <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
+                Delete all pictures
+              </b-tooltip>            
+            </b-row>
             <b-row>
               <b-col sm="1">
                 <label>Variance</label>
               </b-col>
-              <b-col sm="3" id="variance-slider">
+              <b-col sm="2" id="variance-slider">
                 <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
               </b-col>
             </b-row>
@@ -508,7 +510,7 @@ button {
   bottom: 0;
   width: 100%;
   padding: 5px;
-  
+  /* TODO(ia): add shadow at the top.*/
   background-color: #FFFFFFF0;
 }
 
