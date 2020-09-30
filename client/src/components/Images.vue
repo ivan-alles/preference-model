@@ -13,7 +13,7 @@
           <div v-for="(picture, index) in pictures" :key="index" class="picture">
             <template v-if="picture.kind === null" >
               <template v-if="picture.preview !== null">
-                <img :src="picture.preview" class="preview-picture" @click="showFullPicture(picture)">
+                <img :src="picture.preview" class="preview-img" @click="showFullPicture(picture)">
                 <span v-if="picture.liked">
                   <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
                 </span>
@@ -49,6 +49,15 @@
         </div>
         <div class="footer">
           <b-container>
+            <div class="flex-container content">
+              <div v-for="(picture, index) in findLikes" :key="index" class="liked-picture">
+                <template v-if="picture.kind === null" >
+                  <template v-if="picture.preview !== null">
+                    <img :src="picture.preview" class="liked-picture" @click="toggleLike(picture)">
+                  </template>
+                </template>
+              </div>
+            </div>
             <b-row>
               <span id="learn-wrapper" class="d-inline-block" tabindex="0">
                 <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
@@ -90,7 +99,7 @@
               <b-col sm="1">
                 <label>Variance</label>
               </b-col>
-              <b-col sm="2" id="variance-slider">
+              <b-col sm="3" id="variance-slider">
                 <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
               </b-col>
             </b-row>
@@ -330,6 +339,7 @@ export default {
       const likes = this.findLikes;
 
       if (likes.length === 0) {
+        await this.engine.learn([]);
         return;
       }
 
@@ -337,7 +347,6 @@ export default {
       const pictures = [];
 
       for(let like of likes) {
-          like.liked = false;
           latents.push(like.latents);
           pictures.push(like.preview)
       }
@@ -361,6 +370,7 @@ export default {
 
     toggleLike(picture) {
       picture.liked = !picture.liked;
+      this.learn();
     },
 
     showFullPicture(picture) {
@@ -447,13 +457,33 @@ function sleep(ms) {
   margin-bottom: 10px;
 }
 
-.preview-picture {
+.preview-img {
     height: 100%;
     width: 100%; 
     object-fit: contain;
     border-radius: 4px;
     cursor: zoom-in;
 }
+
+.liked-picture { 
+  width: 40px;
+  height: 40px;
+  margin: 1px;
+  text-align: center;
+  /* For like button positioning to work. */
+  position: relative;
+  border: 1px solid var(--secondary);
+  border-radius: 4px;
+  box-shadow: 2px 2px 4px #0004;
+}
+
+.liked-img {
+    height: 100%;
+    width: 100%; 
+    object-fit: contain;
+    border-radius: 4px;
+}
+
 
 .likes-picture-row {
     display: flex;
