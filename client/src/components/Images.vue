@@ -109,7 +109,7 @@
             <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
           </b-button>
         </ShareNetwork>
-        <template v-if="fullPicture.full !== null">
+        <template v-if="fullPicture.full !== null && fullPicture.full !== 'ERROR'">
           <img :src="fullPicture.full" class="full-picture">
         </template>
         <template v-else>
@@ -148,9 +148,15 @@ import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
   kind; // TODO(ia): remove this
+  // An array of latents.
   latents;
+  // Preivew image in data URL format. Other possible values:
+  // null: not created yet.
+  // 'ERROR': there was an error in generation.
   preview;
+  // Full image, values as for the preview.
   full = null;
+  // A bool value, true if the picture is liked.
   liked = false;
 
   constructor(latents, preview, kind=null) {
@@ -237,40 +243,34 @@ export default {
           console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);
+          this.checkFatalError(enginePictures);
           const picture = new Picture(enginePictures[0]);
           this.pictures.push(picture);
           this.fullPicture = picture;
         }       
 
         this.state = stateKind.WORKING;
-      }
-      catch(err) {
-        console.error(err);
-        this.state = stateKind.ERROR;
-        return;
-      }
 
-      while(this.state != stateKind.EXIT) {
-        await sleep(50);
+        while(this.state != stateKind.EXIT) {
+          await sleep(50);
 
-        if(!this.isActive) {
-          continue;
-        }
-
-        if(this.fullPicture !== null) {
-          if(this.fullPicture.full === null) {
-            const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], ['full']);
-            this.fullPicture.full = enginePictures[0].full;
+          if(!this.isActive) {
+            continue;
           }
-          continue;
-        }
-        
-        // Are images below the bottom of the screen?
-        if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-          continue;
-        }
 
-        try {
+          if(this.fullPicture !== null) {
+            if(this.fullPicture.full === null) {
+              const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], ['full']);
+              this.fullPicture.full = enginePictures[0].full;
+            }
+            continue;
+          }
+          
+          // Are images below the bottom of the screen?
+          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
+            continue;
+          }
+
           if(this.isLearningTriggered) {
             this.isLearningTriggered = false;
             await this.learn();
@@ -279,32 +279,36 @@ export default {
             this.isRandomTriggered = false;
             await this.random();
           }  
-        }
-        catch(err) {
-          console.error(err);
-          this.state = stateKind.ERROR;
-          return;
-        }        
 
-        const size = 1;
-        let newPictures = [];
-        for(let i = 0; i < size; ++i) {
-          const picture = new Picture(null, null);
-          newPictures.push(picture);
-          this.pictures.push(picture);
-        }
+          const size = 1;
+          let newPictures = [];
+          for(let i = 0; i < size; ++i) {
+            const picture = new Picture(null, null);
+            newPictures.push(picture);
+            this.pictures.push(picture);
+          }
 
-        try {
           const enginePictures = await this.engine.createPictures(size, this.varianceSlider, ['preview']);
+          this.checkFatalError(enginePictures);
           for(let i = 0; i < size; ++i) {
             newPictures[i].preview = enginePictures[i].preview;
             newPictures[i].latents = enginePictures[i].latents;
           }
         }
-        catch(err) {
+      }
+      catch(error) {
+        this.state = stateKind.ERROR;
+        this.logger.logException('Images.getPicturesTask.createPictures', error);
+        return;
+      }
+    },
+
+    checkFatalError(enginePictures) {
+      for(const enginePicture of enginePictures) {
+        if(enginePicture.preview === 'ERROR') {
+          // This is usually a fatal error, cannot continue.
           this.state = stateKind.ERROR;
-          this.logger.logException('Images.getPicturesTask.createPictures', err);
-          return;
+          throw Error('Cannot create preview picture.');
         }
       }
     },

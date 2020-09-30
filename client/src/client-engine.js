@@ -27,38 +27,62 @@ class Generator {
   }
 
   /**
-   * Generate pictures from latents.
+   * Generate pictures from latents. It will try to create images for all model listed in modelNames. 
+   * In case of an error it will either raise an exception or return the current result with 
+   * failed or missing images set to 'ERROR'.
    *
    * @param {Tensor} latents a [size, 512] tensor of latents.
    * @param {string[]} modelNames model names ('preview', 'full').
-   * @returns {Object[]} an array of objects with fields preview and full.
+   * @returns {Object[]} an array of objects with fields preview and full. If there was a error in 
+   * generation of a single image, it value is set to 'ERROR'.
    */
   async generate(latents, modelNames) {
+    const result = [];
+    for(let i = 0; i < latents.shape[0]; ++i) {
+      const element = {};
+      for(const modelName of modelNames) {
+        element[modelName] = 'ERROR';
+      }
+
+      result.push(element);
+    }
+
     let intermediate = null;
     try {
       intermediate = this.models['common'].predict(latents);
       let canvas = document.createElement("canvas");
-      const result = [];
-      for(let i = 0; i < latents.shape[0]; ++i) {
-        result.push({});
-      }
-
       for(const modelName of modelNames) {
+        if(!this.models[modelName]) {
+          // We could have delete a model due to an error.
+          continue;
+        }
+
         const pictures = await this.makePictures(modelName, intermediate, canvas);
         for(let i = 0; i < result.length; ++i) {
           result[i][modelName] = pictures[i];
         }
       }
-      return result; 
+    }
+    catch(error) {
+      this.logger.logException('Generator.generate', error);
     }
     finally {
       tf.dispose(intermediate);
     }
+    return result; 
   }
 
+  /**
+   * Generate pictures as data URL from an intermediate tensor.
+   *
+   * @param {string} modelName name of the model ('preview' or 'full').
+   * @param {Tensor} intermediate an intermediate tensor.
+   * @param {Object} canvas a canvas to convert a tensor to a data URL. 
+   * @returns an array of images.
+   */
   async makePictures(modelName, intermediate, canvas) {
     let pictures = null;
-    let result = [];
+    let result = new Array(intermediate.shape[0]).fill('ERROR');
     try {
       pictures = tf.tidy(() => {
         let output = this.models[modelName].predict(intermediate);
@@ -66,12 +90,20 @@ class Generator {
         // Convert to an array of tensors of shapes [H, W, 3]
         return output.unstack(0);
       });
-      for (const picture of pictures) {
-        await tf.browser.toPixels(picture, canvas);
+      for (let i = 0; i < pictures.length; ++i) {
+        await tf.browser.toPixels(pictures[i], canvas);
         // Use JPEG compression as potentially more compact.
         // The performance with the default quality is better than PNG.
-        result.push(canvas.toDataURL("image/jpg"));
+        result[i] = canvas.toDataURL("image/jpg");
       }
+    }
+    catch(error) {
+      this.logger.logException('Generator.makePictures', error);
+      // If generation for a model failed once, it will usually always fail.
+      // Remove the model to avoid repetivie failures.
+      this.models[modelName].dispose();
+      delete this.models[modelName];
+      console.log(`Removed model '${modelName}'`);
     }
     finally {
       tf.dispose(pictures);
