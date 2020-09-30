@@ -11,98 +11,46 @@
       <template v-if="fullPicture === null">
         <div class="flex-container content">
           <div v-for="(picture, index) in pictures" :key="index" class="picture">
-            <template v-if="picture.kind === null" >
-              <template v-if="picture.preview !== null">
-                <img :src="picture.preview" class="preview-img" @click="showFullPicture(picture)">
-                <span v-if="picture.liked">
-                  <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
-                </span>
-                <span v-else>
-                  <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
-                </span>
-              </template>
-              <template v-else>
-                <h4>
-                  <b-spinner variant="secondary" label="Dreaming"></b-spinner>
-                  Dreaming
-                </h4>
-              </template>               
+            <template v-if="picture.preview !== null">
+              <img :src="picture.preview" class="preview-img" @click="showFullPicture(picture)">
+              <span v-if="picture.liked">
+                <b-icon icon="heart-fill" @click="toggleLike(picture)" class="like-button liked"></b-icon>
+              </span>
+              <span v-else>
+                <b-icon icon="heart" @click="toggleLike(picture)" class="like-button"></b-icon>
+              </span>
             </template>
-            <template v-else-if="picture.kind === Picture.kind.LIKES">
+            <template v-else>
               <h4>
-                <b-icon icon="heart" @click="relike(picture)"></b-icon>
-                Likes
+                <b-spinner variant="secondary" label="Dreaming"></b-spinner>
+                Dreaming
               </h4>
-              <div class="likes-picture-row" @click="relike(picture)">
-                <div v-for="(picture, index) in picture.deprecatedLikedPictures" :key="index" class="likes-picture-col">
-                  <img :src="picture" class="likes-picture">
-                </div>
-              </div>
-            </template>             
-            <template v-else-if="picture.kind === Picture.kind.RANDOM">
-              <h4>
-                <b-icon icon="dice6" ></b-icon>
-                Random
-              </h4>
-            </template>   
+            </template>               
           </div>
         </div>
         <div class="footer">
           <b-container>
-            <div class="flex-container content">
-              <div v-for="(picture, index) in findLikes" :key="index" class="liked-picture">
-                <template v-if="picture.kind === null" >
+            <template v-if="isRandom()">
+              <p>Making random pictures.</p>
+              <p>Like some to create similar ones.</p>
+            </template>
+            <template v-else>
+              <div class="flex-container content">
+                <div v-for="(picture, index) in findLikes" :key="index" class="liked-picture">
                   <template v-if="picture.preview !== null">
-                    <img :src="picture.preview" class="liked-picture" @click="toggleLike(picture)">
+                    <img :src="picture.preview" class="liked-img" @click="toggleLike(picture)">
                   </template>
-                </template>
+                </div>
               </div>
-            </div>
-            <b-row>
-              <span id="learn-wrapper" class="d-inline-block" tabindex="0">
-                <b-button  @click="triggerLearning()" :disabled="! isLearningEnabled" variant="primary">
-                  <b-icon icon="heart"></b-icon>
-                  Learn
-                </b-button>
-              </span>
-              <b-tooltip target="learn-wrapper" :delay="{ show: 500, hide: 50 }">
-                <template v-if="isLearningEnabled">
-                  Learn from likes
-                </template>
-                <template v-else>
-                  Like some pictures to learn from them
-                </template>      
-              </b-tooltip>
-              <span id="random-wrapper" class="d-inline-block" tabindex="0">
-                <b-button @click="triggerRandom()" variant="secondary" :disabled="isRandom()">
-                  <b-icon icon="dice6" ></b-icon>
-                  Random
-                </b-button>
-              </span>
-              <b-tooltip target="random-wrapper" :delay="{ show: 500, hide: 50 }">
-                <template v-if="! isRandom()">
-                  Forget learning and make random pictures
-                </template>
-                <template v-else>
-                  Already making random pictures
-                </template>      
-              </b-tooltip>      
-              <b-button id="delete-all-button" @click="deleteAllPictures()" variant="secondary">
-                <b-icon icon="trash" ></b-icon>
-                Delete all
-              </b-button>
-              <b-tooltip target="delete-all-button" :delay="{ show: 500, hide: 50 }">
-                Delete all pictures
-              </b-tooltip>            
-            </b-row>
-            <b-row>
-              <b-col sm="1">
-                <label>Variance</label>
-              </b-col>
-              <b-col sm="3" id="variance-slider">
-                <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
-              </b-col>
-            </b-row>
+              <b-row>
+                <b-col sm="1">
+                  <label>Variance</label>
+                </b-col>
+                <b-col sm="3" id="variance-slider">
+                  <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
+                </b-col>
+              </b-row>
+            </template>
           </b-container>  
         </div>        
       </template>
@@ -157,7 +105,6 @@ import { Engine } from '@/client-engine'
 import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
-  kind; // TODO(ia): remove this
   // An array of latents.
   latents;
   // Preivew image in data URL format. Other possible values:
@@ -169,16 +116,10 @@ class Picture {
   // A bool value, true if the picture is liked.
   liked = false;
 
-  constructor(latents, preview, kind=null) {
+  constructor(latents, preview, full=null) {
     this.latents = latents;
     this.preview = preview;
-    this.kind = kind;
-  }
-
-  // TODO(ia): remove this
-  static kind = {
-    LIKES: 'LIKES',
-    RANDOM: 'RANDOM',
+    this.full = full;
   }
 }
 
@@ -226,12 +167,8 @@ export default {
   },
   computed: {
     findLikes() {
-      let likes = this.pictures.filter(picture => picture.kind === null && picture.liked);
+      let likes = this.pictures.filter(picture => picture.liked);
       return likes;
-    },
-
-    isLearningEnabled() {
-      return this.findLikes.length != 0;
     },
   },  
 
@@ -283,12 +220,15 @@ export default {
 
           if(this.isLearningTriggered) {
             this.isLearningTriggered = false;
-            await this.learn();
+            
+            const likes = this.findLikes;
+            const latents = [];
+            for(let like of likes) {
+                latents.push(like.latents);
+            }
+            await this.engine.learn(latents);
           }
-          else if(this.isRandomTriggered) {
-            this.isRandomTriggered = false;
-            await this.random();
-          }  
+
 
           const size = 1;
           let newPictures = [];
@@ -323,54 +263,13 @@ export default {
       }
     },
 
-    triggerLearning() {
-      this.isLearningTriggered = true;
-    },
-
-    triggerRandom() {
-      this.isRandomTriggered = true;
-    },
-
     reload() {
       location.reload();
     },
 
-    async learn() {
-      const likes = this.findLikes;
-
-      if (likes.length === 0) {
-        await this.engine.learn([]);
-        return;
-      }
-
-      const latents = [];
-      const pictures = [];
-
-      for(let like of likes) {
-          latents.push(like.latents);
-          pictures.push(like.preview)
-      }
-
-      const likesPicture = new Picture(null, null, Picture.kind.LIKES);
-      likesPicture.likes = likes;
-      likesPicture.deprecatedLikedPictures = pictures;
-      this.pictures.push(likesPicture);
-      
-      await this.engine.learn(latents);
-    },
-
-    async random() {
-        this.pictures.push(new Picture(null, null, Picture.kind.RANDOM));
-        await this.engine.learn([]);
-    },
-
-    deleteAllPictures() {
-        this.pictures = [];
-    },    
-
     toggleLike(picture) {
       picture.liked = !picture.liked;
-      this.learn();
+      this.isLearningTriggered = true;
     },
 
     showFullPicture(picture) {
@@ -379,12 +278,6 @@ export default {
 
     closeFullPicture() {
       this.fullPicture = null;
-    },
-
-    relike(picture) {
-      for(let like of picture.likes) {
-          like.liked = true;
-      }
     },
 
     shareUrl() {
@@ -405,7 +298,6 @@ export default {
 
     this.logger = new GoogleAnalyticsLogger(this.$ga);
     this.isActive = true;
-    this.isRandomTriggered = true;
     this.isLearningTriggered = false;
     this.engine = new Engine(this.logger);
   },
@@ -470,33 +362,14 @@ function sleep(ms) {
   height: 40px;
   margin: 1px;
   text-align: center;
-  /* For like button positioning to work. */
-  position: relative;
   border: 1px solid var(--secondary);
-  border-radius: 4px;
-  box-shadow: 2px 2px 4px #0004;
+  border-radius: 2px;
 }
 
 .liked-img {
     height: 100%;
     width: 100%; 
     object-fit: contain;
-    border-radius: 4px;
-}
-
-
-.likes-picture-row {
-    display: flex;
-    justify-content: center;
-}
-
-.likes-picture-col {
-    /* Set to a value in [0.5, 1) for 1-picture case to fit the container. */
-    flex: 0.65;
-}
-
-.likes-picture {
-    width: 100%;
 }
 
 .like-button 
@@ -541,7 +414,7 @@ button {
   width: 100%;
   padding: 5px;
   /* TODO(ia): add shadow at the top.*/
-  background-color: #FFFFFFF0;
+  background-color: #f7f7f9f0;
 }
 
 </style>
