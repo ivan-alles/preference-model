@@ -81,6 +81,9 @@
         <b-spinner variant="secondary" label="Loading"></b-spinner>
         Loading
       </h4>
+      <template v-if="isMobile">
+        <p>Running this app on a mobile device can be slow or irresponsive. It works best on a desktop with an NVIDIA graphic card.</p>
+      </template>
     </template>
     <template v-if="state === stateKind.ERROR">
       <h4 class="error">
@@ -163,6 +166,7 @@ export default {
       pictures: [],
       varianceSlider: 2,
       fullPicture: null,
+      isMobile: false,
     };
   },
   computed: {
@@ -296,6 +300,8 @@ export default {
     this.stateKind = stateKind;
     this.Picture = Picture;
 
+    this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     this.logger = new GoogleAnalyticsLogger(this.$ga);
     this.isActive = true;
     this.isLearningTriggered = false;
@@ -353,7 +359,6 @@ function sleep(ms) {
     height: 100%;
     width: 100%; 
     object-fit: contain;
-    border-radius: 4px;
     cursor: zoom-in;
 }
 
