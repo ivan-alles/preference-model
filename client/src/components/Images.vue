@@ -242,6 +242,11 @@ export default {
             this.pictures.push(picture);
           }
 
+          if (this.isMobile) {
+            // Let the browser show pictures in progress.
+            await sleep(50);
+          }
+
           const enginePictures = await this.engine.createPictures(size, this.varianceSlider, ['preview']);
           this.checkFatalError(enginePictures);
           for(let i = 0; i < size; ++i) {
