@@ -88,7 +88,7 @@
         Error
       </h4>
       <p>
-      This app works on a desktop with an NVIDIA graphic card. Other devices may not be supported.
+      This app works best on a desktop with an NVIDIA graphic card. Other devices may not be supported.
       </p>
       <b-button @click="reload()" variant="primary">
         <b-icon icon="bootstrap-reboot"></b-icon>

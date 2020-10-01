@@ -53,7 +53,7 @@ class Generator {
       let canvas = document.createElement('canvas');
       for(const modelName of modelNames) {
         if(!this.models[modelName]) {
-          // We could have delete a model due to an error.
+          // We could have deleted a model due to an error.
           continue;
         }
 
