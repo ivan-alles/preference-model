@@ -50,21 +50,22 @@ class Generator {
     let intermediate = null;
     try {
       intermediate = this.models['common'].predict(latents);
-      let canvas = document.createElement('canvas');
+      // let canvas = document.createElement('canvas');
       for(const modelName of modelNames) {
         if(!this.models[modelName]) {
           // We could have delete a model due to an error.
           continue;
         }
 
-        const pictures = await this.makePictures(modelName, intermediate, canvas);
+        const pictures = await this.makePictures(modelName, intermediate);
         for(let i = 0; i < result.length; ++i) {
           result[i][modelName] = pictures[i];
         }
       }
     }
     catch(error) {
-      this.logger.logException('Generator.generate', error);
+      //this.logger.logException('Generator.generate', error);
+      console.error(error);
     }
     finally {
       tf.dispose(intermediate);
@@ -77,10 +78,9 @@ class Generator {
    *
    * @param {string} modelName name of the model ('preview' or 'full').
    * @param {Tensor} intermediate an intermediate tensor.
-   * @param {Object} canvas a canvas to convert a tensor to a data URL. 
    * @returns an array of images.
    */
-  async makePictures(modelName, intermediate, canvas) {
+  async makePictures(modelName, intermediate) {
     let pictures = null;
     let result = new Array(intermediate.shape[0]).fill('ERROR');
     try {
@@ -90,15 +90,19 @@ class Generator {
         // Convert to an array of tensors of shapes [H, W, 3]
         return output.unstack(0);
       });
+      const canvas = new OffscreenCanvas(pictures[0].shape[1], pictures[0].shape[0]);
       for (let i = 0; i < pictures.length; ++i) {
         await tf.browser.toPixels(pictures[i], canvas);
         // Use JPEG compression as potentially more compact.
         // The performance with the default quality is better than PNG.
-        result[i] = canvas.toDataURL('image/jpg');
+        // result[i] = canvas.toDataURL('image/jpg');
+
+        result[i] = canvas.transferToImageBitmap();
       }
     }
     catch(error) {
-      this.logger.logException('Generator.makePictures', error);
+      // this.logger.logException('Generator.makePictures', error);
+      console.error(error);
       // If generation for a model failed once, it will usually always fail.
       // Remove the model to avoid repetivie failures.
       this.models[modelName].dispose();
@@ -237,6 +241,7 @@ export class Engine {
    * @returns {Object} a object with fields latents, preview, full.
    */
   async createPictures(size, variance, modelNames) {
+    console.log(size, variance, modelNames);
     // console.log('tf.memory', tf.memory());
     let latentsTensor = null;
     try {
@@ -390,6 +395,19 @@ function cartesianToSpherical(x) {
   
   return tf.concat(phiParts, 1);
 }
+
+let engine = null;
+
+self.addEventListener('message', async (event) => {
+  console.log(event);
+  if(engine === null) {
+    engine = new Engine();
+    await engine.init();
+  }
+  const pictures = await engine.createPictures(event.data.size, event.data.variance, event.data.modelNames);
+  self.postMessage({pictures});
+});
+
 
 // Export for tests only.
 export const testables = {PreferenceModel, sphericalToCartesian, cartesianToSpherical, scaledDirichlet};

@@ -101,7 +101,9 @@
 <script>
 
 // import { Engine } from '@/server-engine'
-import { Engine } from '@/client-engine'
+// import { Engine } from '@/client-engine'
+import Worker from 'worker-loader!@/client-engine.js';
+
 import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
@@ -175,7 +177,7 @@ export default {
   methods: {
 
     isRandom: function() {
-      return this.engine.isRandom;
+      return this.findLikes.length === 0;
     },
 
     /**
@@ -183,8 +185,11 @@ export default {
     */
     async getPicturesTask() {
       try {
-        await this.engine.init();
+        const worker = new Worker();
 
+        // await this.engine.init();
+
+        /* TODO(ia):restore this */
         if('show' in this.$route.query) {
           const showParam = decodeURIComponent(this.$route.query['show']);
           console.log(showParam);
@@ -194,7 +199,8 @@ export default {
           const picture = new Picture(enginePictures[0]);
           this.pictures.push(picture);
           this.fullPicture = picture;
-        }       
+        } 
+        
 
         this.state = stateKind.WORKING;
 
@@ -205,6 +211,7 @@ export default {
             continue;
           }
 
+          /* TODO(ia): restore this
           if(this.fullPicture !== null) {
             if(this.fullPicture.full === null) {
               const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], ['full']);
@@ -212,12 +219,14 @@ export default {
             }
             continue;
           }
+          */
           
           // Are images below the bottom of the screen?
           if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
             continue;
           }
 
+          /* TODO(ia): restore this
           if(this.isLearningTriggered) {
             this.isLearningTriggered = false;
             
@@ -228,6 +237,7 @@ export default {
             }
             await this.engine.learn(latents);
           }
+          */
 
 
           const size = 1;
@@ -238,10 +248,29 @@ export default {
             this.pictures.push(picture);
           }
 
-          const enginePictures = await this.engine.createPictures(size, this.varianceSlider, ['preview']);
+          //const enginePictures = await this.engine.createPictures(size, this.varianceSlider, ['preview']);
+          let enginePictures = null;
+
+          console.log('Adding event listener');
+          worker.addEventListener('message', (event) => {
+            console.log('Response', event);
+            enginePictures = event.data.pictures;
+          });
+
+          worker.postMessage({size: size, variance: this.varianceSlider, modelNames: ['preview']});
+
+          while(enginePictures === null) {
+            await sleep(1000);
+          }
+
           this.checkFatalError(enginePictures);
+          let canvas = document.createElement('canvas');
+          let context = canvas.getContext("bitmaprenderer"); 
           for(let i = 0; i < size; ++i) {
-            newPictures[i].preview = enginePictures[i].preview;
+            context.transferFromImageBitmap(enginePictures[i].preview);
+            // Use JPEG compression as potentially more compact.
+            // The performance with the default quality is better than PNG.
+            newPictures[i].preview = canvas.toDataURL('image/jpg');
             newPictures[i].latents = enginePictures[i].latents;
           }
         }
@@ -299,7 +328,7 @@ export default {
     this.logger = new GoogleAnalyticsLogger(this.$ga);
     this.isActive = true;
     this.isLearningTriggered = false;
-    this.engine = new Engine(this.logger);
+    // this.engine = new Engine(this.logger);
   },
 
   mounted() {
