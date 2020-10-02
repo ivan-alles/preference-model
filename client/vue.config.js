@@ -4,4 +4,7 @@ module.exports = {
   /* devServer: {
       proxy: 'https://github.com/ivan-alles/preference-model/releases/download/0.1/',
   }*/
+  configureWebpack: {
+    devtool: 'source-map'
+  }
 }
