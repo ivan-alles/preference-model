@@ -214,11 +214,10 @@ export default {
 
         if('show' in this.$route.query) {
           const showParam = decodeURIComponent(this.$route.query['show']);
-          console.log(showParam);
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);
           this.checkFatalError(enginePictures);
-          const picture = new Picture(enginePictures[0]);
+          const picture = new Picture(enginePictures[0].preview, enginePictures[0].full);
           this.pictures.push(picture);
           this.fullPicture = picture;
           this.state = stateKind.WORKING;
