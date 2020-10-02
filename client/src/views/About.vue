@@ -35,6 +35,6 @@
 <style>
 .content {
   max-width: 960px;
-  margin: auto;
+  margin: 10px;
 }
 </style>
