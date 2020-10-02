@@ -27,7 +27,11 @@
               </h4>
             </template>
           </div>
-          <p class="placeholder-picture"></p>
+          <p class="placeholder-picture">
+            <template v-if="isScrollingRequiredForNewPictures">
+              Scroll for more pictures
+            </template>
+          </p>
         </div>
         <p class="placeholder-picture"></p>
         <div class="footer">
@@ -181,6 +185,7 @@ export default {
       varianceSlider: 2,
       fullPicture: null,
       isMobile: false,
+      isScrollingRequiredForNewPictures: false,
     };
   },
   computed: {
@@ -260,8 +265,10 @@ export default {
 
           // Are images below the bottom of the screen?
           if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 90) {
+            this.isScrollingRequiredForNewPictures = true;
             continue;
           }
+          this.isScrollingRequiredForNewPictures = false;
 
           const size = 1;
           let newPictures = [];
