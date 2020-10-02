@@ -212,9 +212,8 @@ export default {
           const picture = new Picture(enginePictures[0]);
           this.pictures.push(picture);
           this.fullPicture = picture;
+          this.state = stateKind.WORKING;
         }       
-
-        this.state = stateKind.WORKING;
 
         while(this.state != stateKind.EXIT) {
           await sleep(50);
@@ -246,6 +245,12 @@ export default {
           if(picturesInProgress.length > 0) {
             const enginePictures = await this.engine.createPictures(picturesInProgress.length, this.varianceSlider, ['preview']);
             this.checkFatalError(enginePictures);
+            // Although the initialization is already done, we postone going to the working state until 
+            // the 1st image is created, as it is slower (warm up) and may even fail.
+            // This gives the user more time to see the initial screen.
+            if(this.state === stateKind.INIT) {
+              this.state = stateKind.WORKING;
+            }
             for(let i = 0; i < enginePictures.length; ++i) {
               picturesInProgress[i].preview = enginePictures[i].preview;
               picturesInProgress[i].latents = enginePictures[i].latents;
@@ -265,19 +270,6 @@ export default {
             newPictures.push(picture);
             this.pictures.push(picture);
           }
-          /*
-
-          if (this.isMobile) {
-            // Let the browser show pictures in progress.
-            await sleep(50);
-          }
-
-          const enginePictures = await this.engine.createPictures(size, this.varianceSlider, ['preview']);
-          this.checkFatalError(enginePictures);
-          for(let i = 0; i < size; ++i) {
-            newPictures[i].preview = enginePictures[i].preview;
-            newPictures[i].latents = enginePictures[i].latents;
-          }*/
         }
       }
       catch(error) {
