@@ -455,6 +455,7 @@ button {
   bottom: 0;
   width: 100%;
   padding: 2px 5px 2px 5px;
+  box-shadow: 0 -5px 5px -5px #0004;
   /* TODO(ia): add shadow at the top.*/
   background-color: #f7f7f9f0;
 }
