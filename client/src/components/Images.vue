@@ -36,7 +36,7 @@
         <p class="placeholder-picture"></p>
         <div class="footer">
           <b-container>
-            <template v-if="isRandom()">
+            <template v-if="! hasLikes">
               <p>Making random pictures.</p>
               <p>
                 <b-icon icon="heart-fill" class="like-in-text"></b-icon>
@@ -49,13 +49,16 @@
                     <img :src="picture.preview" class="liked-img" @click="toggleLike(picture)">
                   </template>
                 </div>
+                <b-button @click="unlikeAll()" variant="secondary">
+                  <b-icon icon="trash" ></b-icon>
+                </b-button>
               </div>
               <b-row>
                 <b-col sm="1">
                   <label>Variance</label>
                 </b-col>
                 <b-col sm="3" id="variance-slider">
-                  <b-form-input v-model="varianceSlider" type="range" min="0" max="4" :disabled="isRandom()"></b-form-input>
+                  <b-form-input v-model="varianceSlider" type="range" min="0" max="4"></b-form-input>
                 </b-col>
               </b-row>
             </template>
@@ -195,14 +198,13 @@ export default {
       let likes = this.pictures.filter(picture => picture.liked);
       return likes;
     },
+
+    hasLikes: function() {
+      return this.findLikes.length > 0;
+    },
   },  
 
   methods: {
-
-    isRandom: function() {
-      return this.engine.isRandom;
-    },
-
     /**
     * Generates pictures in the background.
     */
@@ -313,6 +315,15 @@ export default {
 
     closeFullPicture() {
       this.fullPicture = null;
+    },
+
+    unlikeAll() {
+      for(let picture of this.pictures){
+        if(picture.liked) {
+          picture.liked = false;
+          this.isLearningTriggered = true;
+        }
+      }
     },
 
     shareUrl() {
