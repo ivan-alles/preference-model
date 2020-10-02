@@ -25,9 +25,11 @@
                 <b-spinner variant="secondary" label="Dreaming"></b-spinner>
                 Dreaming
               </h4>
-            </template>               
+            </template>
           </div>
+          <p class="placeholder-picture"></p>
         </div>
+        <p class="placeholder-picture"></p>
         <div class="footer">
           <b-container>
             <template v-if="isRandom()">
@@ -229,11 +231,6 @@ export default {
             continue;
           }
           
-          // Are images below the bottom of the screen?
-          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 210) {
-            continue;
-          }
-
           if(this.isLearningTriggered) {
             this.isLearningTriggered = false;
             
@@ -253,6 +250,11 @@ export default {
               picturesInProgress[i].preview = enginePictures[i].preview;
               picturesInProgress[i].latents = enginePictures[i].latents;
             }
+            continue;
+          }
+
+          // Are images below the bottom of the screen?
+          if(document.documentElement.scrollTop + window.innerHeight < document.documentElement.offsetHeight - 90) {
             continue;
           }
 
@@ -382,6 +384,14 @@ function sleep(ms) {
   margin-top: 5px;
   margin-bottom: 10px;
 }
+
+/* A placeholder of the same size as the picture to enable scrolling before generating real pictures. */
+.placeholder-picture { 
+  width: 180px;
+  block-size: 180px;
+  margin: 2px;
+  border: 1px solid #00000000;
+} 
 
 .preview-img {
     height: 100%;
