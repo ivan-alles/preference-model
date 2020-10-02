@@ -217,7 +217,7 @@ export default {
           const latents = base64ToFloat32Array(showParam);
           const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);
           this.checkFatalError(enginePictures);
-          const picture = new Picture(enginePictures[0].preview, enginePictures[0].full);
+          const picture = new Picture(enginePictures[0].latents, enginePictures[0].preview, enginePictures[0].full);
           this.pictures.push(picture);
           this.fullPicture = picture;
           this.state = stateKind.WORKING;
