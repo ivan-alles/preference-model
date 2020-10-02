@@ -213,9 +213,12 @@ export default {
         await this.engine.init();
 
         if('show' in this.$route.query) {
-          const showParam = decodeURIComponent(this.$route.query['show']);
-          const latents = base64ToFloat32Array(showParam);
-          const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);
+          const showParam = this.$route.query['show'];
+          const spericalLatents = base64ToFloat32Array(showParam);
+          console.log('spericalLatents', spericalLatents);
+          const latents = this.engine.toCartesian([spericalLatents]);
+          console.log('latents', latents);
+          const enginePictures = await this.engine.generatePictures(latents, ['preview', 'full']);
           this.checkFatalError(enginePictures);
           const picture = new Picture(enginePictures[0].latents, enginePictures[0].preview, enginePictures[0].full);
           this.pictures.push(picture);
@@ -326,8 +329,9 @@ export default {
     },
 
     shareUrl() {
-      const url = window.location.href + '?show=' + 
-        encodeURIComponent(float32ArrayToBase64(this.fullPicture.latents));
+      const spherical = this.engine.toSpherical([this.fullPicture.latents]);
+      console.log('spherical', spherical);
+      const url = window.location.href + '?show=' + float32ArrayToBase64(spherical[0]);
       return url;
     },
 

@@ -152,6 +152,18 @@ class PreferenceModel {
     this.trainingExamples = trainingExamples;
   }
 
+  toSperical(cartesian) {
+    let phi = cartesianToSpherical(cartesian);
+    // [0, pi] -> [-pi, pi]
+    return phi.mul(this.const2).sub(this.constPi);
+  }
+
+  toCartesian(spherical) {
+    // [-pi, pi] -> [0, pi].
+    spherical = spherical.add(this.constPi).div(this.const2);
+    return sphericalToCartesian(spherical);
+  }
+
   /**
    * Generate new pictures.
    * @param {number} size number of pictures.
@@ -227,6 +239,18 @@ export class Engine {
 
     await this.generator.init();
     this.preferenceModel.init();
+  }
+
+  toSpherical(cartesian) {
+    return tf.tidy(() => {
+      return this.preferenceModel.toSperical(tf.tensor(cartesian)).arraySync();
+    });
+  }
+
+  toCartesian(spherical) {
+    return tf.tidy(() => {
+      return this.preferenceModel.toCartesian(tf.tensor(spherical)).arraySync();
+    });
   }
 
   /**
