@@ -38,7 +38,9 @@
           <b-container>
             <template v-if="isRandom()">
               <p>Making random pictures.</p>
-              <p>Like some pictures to dream similar ones.</p>
+              <p>
+                <b-icon icon="heart-fill" class="like-in-text"></b-icon>
+                Like some pictures to dream similar ones.</p>
             </template>
             <template v-else>
               <div class="flex-container content">
@@ -430,6 +432,10 @@ function sleep(ms) {
 }
 
 .liked {
+  color: red;
+}
+
+.like-in-text {
   color: red;
 }
 
