@@ -110,19 +110,31 @@ import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 class Picture {
   // An array of latents.
   latents;
+
   // Preivew image in data URL format. Other possible values:
   // null: not created yet.
   // 'ERROR': there was an error in generation.
   preview;
+
   // Full image, values as for the preview.
   full = null;
+
   // A bool value, true if the picture is liked.
   liked = false;
+
+  creationTime = performance.now();
 
   constructor(latents, preview, full=null) {
     this.latents = latents;
     this.preview = preview;
     this.full = full;
+  }
+
+  /**
+   * Lifetime of the cell in ms.
+  */
+  lifeTime() {
+    return performance.now() - this.creationTime;
   }
 }
 
@@ -233,6 +245,16 @@ export default {
             await this.engine.learn(latents);
           }
 
+          let picturesInProgress = this.pictures.filter(picture => picture.preview === null && picture.lifeTime() > 100);
+          if(picturesInProgress.length > 0) {
+            const enginePictures = await this.engine.createPictures(picturesInProgress.length, this.varianceSlider, ['preview']);
+            this.checkFatalError(enginePictures);
+            for(let i = 0; i < enginePictures.length; ++i) {
+              picturesInProgress[i].preview = enginePictures[i].preview;
+              picturesInProgress[i].latents = enginePictures[i].latents;
+            }
+            continue;
+          }
 
           const size = 1;
           let newPictures = [];
@@ -241,6 +263,7 @@ export default {
             newPictures.push(picture);
             this.pictures.push(picture);
           }
+          /*
 
           if (this.isMobile) {
             // Let the browser show pictures in progress.
@@ -252,7 +275,7 @@ export default {
           for(let i = 0; i < size; ++i) {
             newPictures[i].preview = enginePictures[i].preview;
             newPictures[i].latents = enginePictures[i].latents;
-          }
+          }*/
         }
       }
       catch(error) {
