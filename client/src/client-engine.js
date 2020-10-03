@@ -130,6 +130,7 @@ class PreferenceModel {
 
   init() {
     const cols = this.shape - 1;
+    this.trainingExamplesPhi = tf.tensor([]); // Use an empty tensor instead of null for uniformity.
 
     // Convert [0, pi] <-> [-pi, pi] for all but the last column of angles
     // (it's already so)
@@ -305,8 +306,14 @@ export class Engine {
    * @param {number[][]} likes array of liked latents.
    */
   learn(likes) {
-    // No need to dispose this tensor, it will be stored in the preference model.
-    this.preferenceModel.train(tf.tensor(likes));
+    let likesTensor = null;
+    try {
+      likesTensor = tf.tensor(likes);
+      this.preferenceModel.train(likesTensor);
+    }
+    finally {
+      tf.dispose(likesTensor);
+    }
   }
 
   /**
