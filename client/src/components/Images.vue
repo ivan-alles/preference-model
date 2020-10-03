@@ -44,6 +44,7 @@
             </template>
             <template v-else>
               <div class="flex-container content">
+                <b-icon icon="heart-fill" class="like-in-likes"></b-icon>
                 <div v-for="(picture, index) in findLikes" :key="index" class="liked-picture">
                   <template v-if="picture.preview !== null">
                     <img :src="picture.preview" class="liked-img" @click="toggleLike(picture)">
@@ -311,6 +312,7 @@ export default {
     },
 
     closeFullPicture() {
+      // TODO(ia): restore scroll position so that we see the same area after closing.
       this.fullPicture = null;
     },
 
@@ -421,6 +423,13 @@ function sleep(ms) {
     height: 100%;
     width: 100%; 
     object-fit: contain;
+}
+
+.like-in-likes {
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  color: red;
 }
 
 .like-button 
