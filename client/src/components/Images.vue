@@ -116,7 +116,6 @@
 
 // import { Engine } from '@/server-engine'
 import { Engine } from '@/client-engine'
-import { float32ArrayToBase64, base64ToFloat32Array } from '@/utils'
 
 class Picture {
   // An array of latents.
@@ -213,8 +212,7 @@ export default {
         await this.engine.init();
 
         if('show' in this.$route.query) {
-          const showParam = decodeURIComponent(this.$route.query['show']);
-          const latents = base64ToFloat32Array(showParam);
+          const latents = this.engine.convertURIStringToLatents(this.$route.query['show']);
           const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);
           this.checkFatalError(enginePictures);
           const picture = new Picture(enginePictures[0].latents, enginePictures[0].preview, enginePictures[0].full);
@@ -326,8 +324,7 @@ export default {
     },
 
     shareUrl() {
-      const url = window.location.href + '?show=' + 
-        encodeURIComponent(float32ArrayToBase64(this.fullPicture.latents));
+      const url = window.location.href + '?show=' + this.engine.convertLatentsToURIString(this.fullPicture.latents);
       return url;
     },
 

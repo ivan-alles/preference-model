@@ -218,6 +218,12 @@ class PreferenceModel {
   }
 }
 
+// We encode real numbers using this number of charachters.
+const URI_STRING_ELEMENT_SIZE = 2;
+
+// See https://en.wikipedia.org/wiki/Percent-encoding#Types_of_URI_characters
+const URI_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+
 /**
  * Combines alogrithms to implement application logic.
  * Converts the data between UI (plain javascript data) to internal representations (tf.tensor).
@@ -322,6 +328,56 @@ export class Engine {
    */
   get isRandom() {
     return this.preferenceModel.isRandom;
+  }
+
+  /**
+   * Convert a vector of latents to an URI string. Use spherical coordinates as more reliable format.
+   * @param {number[]} latents
+   * @returns {string} string containing URI-conform characters.
+   */
+  convertLatentsToURIString(latents) {
+    const spherical =  tf.tidy(() => this.preferenceModel.toSperical(tf.tensor([latents])).arraySync()[0]);
+    const numDigits = URI_CHARS.length;
+    const factor = Math.pow(numDigits, URI_STRING_ELEMENT_SIZE);
+
+    let result = '';
+    for(let i = 0; i < spherical.length; ++i) {
+      let integer = Math.round((spherical[i] / Math.PI * 0.5 + 0.5) * factor);
+      integer = Math.min(Math.max(0, integer), factor);
+      const chars = [];
+      for(let j = 0; j < URI_STRING_ELEMENT_SIZE; ++j) {
+        const digit = integer % numDigits;
+        chars.push(URI_CHARS[digit]);
+        integer = Math.trunc(integer / numDigits);
+      }
+      result += chars.reverse().join('');
+    }
+    return result;
+  }
+
+  /**
+   * Convert an URI-encoded latent back to an array of floats.
+   * @param {str} URI parameter.
+   * @returns {number[]} an array of floats.
+  */
+  convertURIStringToLatents(uriStr) {
+    const numDigits = URI_CHARS.length;
+    const factor = Math.pow(numDigits, URI_STRING_ELEMENT_SIZE);
+    let numbers = new Array();
+    for(let i = 0; i < uriStr.length; i += URI_STRING_ELEMENT_SIZE) {
+      let integer = 0;
+      for(let j = 0; j < URI_STRING_ELEMENT_SIZE; ++j) {
+        const digit = URI_CHARS.indexOf(uriStr[i + j]);
+        integer += digit * Math.pow(numDigits, URI_STRING_ELEMENT_SIZE - j - 1);
+
+      }
+      const float = (integer / factor - 0.5) * 2 * Math.PI;
+      numbers.push(float);
+    }
+
+    return tf.tidy(() => {
+      return this.preferenceModel.toCartesian(tf.tensor([numbers])).arraySync()[0];
+    });
   }
 }
 
