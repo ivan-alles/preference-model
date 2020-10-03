@@ -125,11 +125,10 @@ class PreferenceModel {
         [1, 1.5, .07],  // Start going outside of the convex combination of training examples
         [1.2, 2.0, .1]  // Concentrate in the middle, as the values at the boarder have little visual difference
       ];
-      this.trainingExamples = null;
+      this.trainingExamplesPhi = null;
   }
 
   init() {
-    this.trainingExamples = tf.tensor([]);
     const cols = this.shape - 1;
 
     // Convert [0, pi] <-> [-pi, pi] for all but the last column of angles
@@ -139,7 +138,7 @@ class PreferenceModel {
   }
 
   get isRandom() {
-    return this.trainingExamples === null || this.trainingExamples.shape[0] === 0;
+    return this.trainingExamplesPhi === null || this.trainingExamplesPhi.shape[0] === 0;
   }
   
   /**
@@ -148,8 +147,8 @@ class PreferenceModel {
    * (regardless of the shape), revert to uniform random generator.
    */
   train(trainingExamples) {
-    tf.dispose(this.trainingExamples);
-    this.trainingExamples = trainingExamples;
+    tf.dispose(this.trainingExamplesPhi);
+    this.trainingExamplesPhi = tf.tidy(() => this.toSperical(trainingExamples));
   }
 
   /**
@@ -158,6 +157,9 @@ class PreferenceModel {
    * @returns {Tensor} spherical coordiates with all elements in range [-pi, pi].
    */
   toSperical(cartesian) {
+    if(cartesian.shape[0] === 0) {
+      return tf.tensor([]);
+    }
     let phi = cartesianToSpherical(cartesian);
     // [0, pi] -> [-pi, pi] for all but the last.
     return phi.mul(this.const2).sub(this.constPi);
@@ -188,8 +190,8 @@ class PreferenceModel {
     }
     const varianceParams = this.VARIANCE_PARAMS[variance];
 
-    const k = this.trainingExamples.shape[0];
-    const phi = this.toSperical(this.trainingExamples);
+    const phi = this.trainingExamplesPhi;
+    const k = phi.shape[0];
 
     let outputPhi = null;
     if (k == 1) {
@@ -258,7 +260,7 @@ export class Engine {
     // console.log('tf.memory', tf.memory());
     let latentsTensor = null;
     try {
-      const latentsTensor = tf.tidy(() => this.preferenceModel.generate(size, variance));
+      latentsTensor = tf.tidy(() => this.preferenceModel.generate(size, variance));
       return await this.generatePicturesFromTensor(latentsTensor, modelNames);
     }
     finally {
@@ -275,7 +277,7 @@ export class Engine {
   async generatePictures(latents, modelNames) {
     let latentsTensor = null;
     try {
-      const latentsTensor = tf.tensor(latents);
+      latentsTensor = tf.tensor(latents);
       return await this.generatePicturesFromTensor(latentsTensor, modelNames);
     }
     finally {
@@ -294,15 +296,15 @@ export class Engine {
     const latents = await latentsTensor.array();
     for(let i = 0; i < latentsTensor.shape[0]; ++i) {
       result[i].latents = latents[i];
+      return result;
     }
-    return result;
   }
 
   /**
    * Learn likes.
    * @param {number[][]} likes array of liked latents.
    */
-  async learn(likes) {
+  learn(likes) {
     // No need to dispose this tensor, it will be stored in the preference model.
     this.preferenceModel.train(tf.tensor(likes));
   }

@@ -246,7 +246,7 @@ export default {
             for(let like of likes) {
                 latents.push(like.latents);
             }
-            await this.engine.learn(latents);
+            this.engine.learn(latents);
           }
 
           let picturesInProgress = this.pictures.filter(picture => picture.preview === null && picture.lifeTime() > 100);
