@@ -153,6 +153,28 @@ class PreferenceModel {
   }
 
   /**
+   * Converts latents from cartesian to "uniformly normalized" spherical form.
+   * @param {Tensor} cartesian cartesian latents.
+   * @returns {Tensor} spherical coordiates with all elements in range [-pi, pi].
+   */
+  toSperical(cartesian) {
+    let phi = cartesianToSpherical(cartesian);
+    // [0, pi] -> [-pi, pi] for all but the last.
+    return phi.mul(this.const2).sub(this.constPi);
+  }
+
+  /**
+   * Converts latents from spherical (returned by toSperical()) to cartesian.
+   * @param {Tensor} spherical spherical latents.
+   * @returns {Tensor} spherical coordiates with all elements in range [-pi, pi].
+   */
+  toCartesian(spherical) {
+    // [-pi, pi] -> [0, pi] for all but the last.
+    spherical = spherical.add(this.constPi).div(this.const2);
+    return sphericalToCartesian(spherical);
+  }
+
+  /**
    * Generate new pictures.
    * @param {number} size number of pictures.
    * @param {number} variance an index to select a value from VARIANCE_PARAMS.
@@ -167,9 +189,7 @@ class PreferenceModel {
     const varianceParams = this.VARIANCE_PARAMS[variance];
 
     const k = this.trainingExamples.shape[0];
-    let phi = cartesianToSpherical(this.trainingExamples);
-    // [0, pi] -> [-pi, pi]
-    phi = phi.mul(this.const2).sub(this.constPi);
+    const phi = this.toSperical(this.trainingExamples);
 
     let outputPhi = null;
     if (k == 1) {
@@ -190,9 +210,7 @@ class PreferenceModel {
 
     outputPhi = outputPhi.add(tf.randomNormal(outputPhi.shape, 0, varianceParams[2]));
 
-    // [-pi, pi] -> [0, pi].
-    outputPhi = outputPhi.add(this.constPi).div(this.const2);
-    const output = sphericalToCartesian(outputPhi);
+    const output = this.toCartesian(outputPhi);
     return output;
   }
 }
