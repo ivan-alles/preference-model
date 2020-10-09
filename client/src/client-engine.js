@@ -16,7 +16,8 @@ class Generator {
   }
 
   async init(onProgress) {
-    let modelNumber = 0;
+    // A user-friendly model number to show in the progress message.
+    let modelNumber = 1; 
     for (let [key, url] of Object.entries(MODEL_URLS)) {
       if (process.env.NODE_ENV === 'production' ) {
         url = '/preference-model' + url;      
