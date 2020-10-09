@@ -91,7 +91,7 @@
     <template v-if="state === stateKind.INIT">
       <h4>
         <b-spinner variant="secondary" label="Loading"></b-spinner>
-        Loading
+        {{progressMessage}}
       </h4>
       <template v-if="isMobile">
         <p>Running this app on a mobile device can be slow or irresponsive. It works best on a desktop with an NVIDIA graphic card.</p>
@@ -191,6 +191,7 @@ export default {
       fullPicture: null,
       isMobile: false,
       isScrollingRequiredForNewPictures: false,
+      progressMessage: 'Loading ...'
     };
   },
   computed: {
@@ -210,8 +211,8 @@ export default {
     */
     async getPicturesTask() {
       try {
-        await this.engine.init();
-
+        await this.engine.init(message => {this.progressMessage = message;});
+        this.progressMessage = 'Warming up ...';
         if('show' in this.$route.query) {
           const latents = this.engine.convertURIStringToLatents(this.$route.query['show']);
           const enginePictures = await this.engine.generatePictures([latents], ['preview', 'full']);

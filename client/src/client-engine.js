@@ -15,14 +15,20 @@ class Generator {
     this.models = {};
   }
 
-  async init() {
+  async init(onProgress) {
+    let modelNumber = 0;
     for (let [key, url] of Object.entries(MODEL_URLS)) {
       if (process.env.NODE_ENV === 'production' ) {
         url = '/preference-model' + url;      
       }
+
       console.log(`Loading model ${url} ...`)
-      this.models[key] = await loadGraphModel(url);
+      this.models[key] = await loadGraphModel(url, {onProgress: fraction => {
+        let progress = Math.round(fraction * 100);
+        onProgress(`Loading neural network ${modelNumber}: ${progress}%`);
+      }});
       console.log(`Model loaded`)
+      ++modelNumber;
     }
   }
 
@@ -233,7 +239,7 @@ export class Engine {
     this.logger = logger;
   }
 
-  async init() {
+  async init(onProgress) {
     // Do tf initialization here, before any usage of it.
     console.log('32-bit capable', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
     console.log('32-bit enabled', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
@@ -252,7 +258,7 @@ export class Engine {
     this.generator = new Generator(this.logger);
     this.preferenceModel = new PreferenceModel();
 
-    await this.generator.init();
+    await this.generator.init(onProgress);
     this.preferenceModel.init();
   }
 
