@@ -72,6 +72,23 @@
           Continue
         </b-button>
         <ShareNetwork
+            network="Facebook"
+            :url="shareUrl()"
+          >
+          <b-button variant="secondary">
+            <font-awesome-icon :icon="['fab', 'facebook']" size="lg" ></font-awesome-icon>
+          </b-button>
+        </ShareNetwork>
+        <ShareNetwork
+            network="Twitter"
+            :url="shareUrl()"
+            :title="shareTitle()"
+          >
+          <b-button variant="secondary">
+            <font-awesome-icon :icon="['fab', 'twitter']" size="lg" ></font-awesome-icon>
+          </b-button>
+        </ShareNetwork>        
+        <ShareNetwork
             network="VK"
             :url="shareUrl()"
             :title="shareTitle()"
@@ -79,7 +96,16 @@
           <b-button variant="secondary">
             <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
           </b-button>
-        </ShareNetwork>
+        </ShareNetwork>   
+        <ShareNetwork
+            network="Email"
+            :url="shareUrl()"
+            :title="shareTitle()"
+          >
+          <b-button variant="secondary">
+            <b-icon icon="envelope" ></b-icon>
+          </b-button>
+        </ShareNetwork>          
         <template v-if="fullPicture.full !== null && fullPicture.full !== 'ERROR'">
           <img :src="fullPicture.full" class="full-picture">
         </template>
