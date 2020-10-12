@@ -80,15 +80,6 @@
           </b-button>
         </ShareNetwork>
         <ShareNetwork
-            network="Twitter"
-            :url="shareUrl()"
-            :title="shareTitle()"
-          >
-          <b-button variant="secondary">
-            <font-awesome-icon :icon="['fab', 'twitter']" size="lg" ></font-awesome-icon>
-          </b-button>
-        </ShareNetwork>        
-        <ShareNetwork
             network="VK"
             :url="shareUrl()"
             :title="shareTitle()"
@@ -97,10 +88,13 @@
             <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
           </b-button>
         </ShareNetwork>   
+        <!-- The URL will be inserted as plain text, so add a line break and a short description. -->
         <ShareNetwork
             network="Email"
             :url="shareUrl()"
             :title="shareTitle()"
+            description="
+            Please put the long URL above to the address bar of your browser."
           >
           <b-button variant="secondary">
             <b-icon icon="envelope" ></b-icon>

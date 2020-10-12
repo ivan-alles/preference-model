@@ -4,7 +4,7 @@ import { BootstrapVue, IconsPlugin, FormInputPlugin } from 'bootstrap-vue'
 import VueSocialSharing from 'vue-social-sharing'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faVk, faFacebook, faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { faVk, faFacebook } from '@fortawesome/free-brands-svg-icons'
 
 import Home from '../views/Home.vue'
 
@@ -12,7 +12,6 @@ import '../custom.scss'
 
 library.add(faVk)
 library.add(faFacebook)
-library.add(faTwitter)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 Vue.use(BootstrapVue)
