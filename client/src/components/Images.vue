@@ -79,6 +79,16 @@
             <font-awesome-icon :icon="['fab', 'facebook']" size="lg" ></font-awesome-icon>
           </b-button>
         </ShareNetwork>
+        <!-- Twitter does not work with a local URL. -->
+        <ShareNetwork
+            network="Twitter"
+            :url="shareUrl()"
+            :title="shareTitle()"
+          >
+          <b-button variant="secondary">
+            <font-awesome-icon :icon="['fab', 'twitter']" size="lg" ></font-awesome-icon>
+          </b-button>
+        </ShareNetwork>         
         <ShareNetwork
             network="VK"
             :url="shareUrl()"
