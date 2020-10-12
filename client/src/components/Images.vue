@@ -438,8 +438,8 @@ function sleep(ms) {
 }
 
 .liked-picture { 
-  width: 40px;
-  height: 40px;
+  width: 80px;
+  height: 80px;
   margin: 1px;
   text-align: center;
   border: 1px solid var(--secondary);
@@ -454,7 +454,7 @@ function sleep(ms) {
 
 .like-in-likes {
   width: 40px;
-  height: 40px;
+  height: 80px;
   padding: 5px;
   color: red;
 }
