@@ -74,6 +74,7 @@
         <ShareNetwork
             network="Facebook"
             :url="shareUrl()"
+            :title="shareTitle()"
           >
           <b-button variant="secondary">
             <font-awesome-icon :icon="['fab', 'facebook']" size="lg" ></font-awesome-icon>
