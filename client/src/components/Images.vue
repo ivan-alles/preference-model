@@ -222,7 +222,8 @@ export default {
       fullPicture: null,
       isMobile: false,
       isScrollingRequiredForNewPictures: false,
-      progressMessage: 'Loading ...'
+      progressMessage: 'Loading ...',
+      previewScrollTop: null,
     };
   },
   computed: {
@@ -340,6 +341,9 @@ export default {
     },
 
     showFullPicture(picture) {
+      this.previewScrollTop = document.documentElement.scrollTop;
+      // Ensure visibility of the title and social share buttons.
+      document.documentElement.scrollTop = 0;
       this.fullPicture = picture;
     },
 
@@ -386,6 +390,13 @@ export default {
 
   beforeDestroy () {
     this.state = stateKind.EXIT;
+  },
+
+  updated() {
+    if(this.fullPicture === null && this.previewScrollTop !== null) {
+      document.documentElement.scrollTop = this.previewScrollTop;
+      this.previewScrollTop = null;
+    }
   },
 
   watch: {
