@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: yarn install --cwd client
-    - run: yarn jest --cwd client
+    - run: yarn --cwd client install 
+    - run: yarn --cwd client jest 
       env:
         CI: true
