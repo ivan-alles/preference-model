@@ -261,10 +261,12 @@ export default {
             continue;
           }
 
-          if(this.fullPicture !== null) {
-            if(this.fullPicture.full === null) {
-              const enginePictures = await this.engine.generatePictures([this.fullPicture.latents], ['full']);
-              this.fullPicture.full = enginePictures[0].full;
+          // Use a local variable, as the member variable can be reset during async calls.
+          const fullPicture = this.fullPicture;
+          if(fullPicture !== null) {
+            if(fullPicture.full === null) {
+              const enginePictures = await this.engine.generatePictures([fullPicture.latents], ['full']);
+              fullPicture.full = enginePictures[0].full;
             }
             continue;
           }
