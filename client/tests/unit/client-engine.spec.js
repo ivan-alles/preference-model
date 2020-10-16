@@ -12,7 +12,7 @@ const sphericalToCartesian = testables.sphericalToCartesian;
 
 test('tensorflow installed correctly', () => {
   const t = tf.tensor1d([1, 2, 3]);
-  expect(t.shape).toStrictEqual([3]);
+  expect(t.shape).toStrictEqual([33]);
 });
 
 const SHAPE=512;
