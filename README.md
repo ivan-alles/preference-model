@@ -1,3 +1,5 @@
+![Preference Model](https://github.com/ivan-alles/preference-model/workflows/client/badge.svg)
+
 # Learning User Preferences From Likes
 
 This [app](https://ivan-alles.github.io/preference-model/) demonstrates how a neural network learns what you like.
