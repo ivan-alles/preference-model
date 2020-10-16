@@ -1,3 +1,5 @@
+<!-- Copyright 2016-2020 Ivan Alles. See also the LICENSE file. -->
+
 <template>
   <div class="home">
     <Images msg="Welcome to Your Vue.js App"/>

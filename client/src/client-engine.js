@@ -1,4 +1,7 @@
-/* eslint-disable no-unused-vars */
+// Copyright 2016-2020 Ivan Alles. See also the LICENSE file. 
+
+// eslint-disable no-unused-vars
+
 import * as tf from '@tensorflow/tfjs';
 import {loadGraphModel} from '@tensorflow/tfjs-converter';
 

@@ -1,3 +1,5 @@
+// Copyright 2016-2020 Ivan Alles. See also the LICENSE file. 
+
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import { BootstrapVue, IconsPlugin, FormInputPlugin } from 'bootstrap-vue'

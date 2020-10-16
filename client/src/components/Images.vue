@@ -1,7 +1,5 @@
-<!--
-  Error handling: the practice have shown that in case of an error we cannot recover. Only reloading the page helps.
-  This is what we implement in the code.
--->
+<!-- Copyright 2016-2020 Ivan Alles. See also the LICENSE file. -->
+
 <template>
   <b-container>
     <div>
@@ -129,6 +127,7 @@
       </template>
     </template>
     <template v-if="state === stateKind.ERROR">
+      <!-- The practice have shown that in case of an error we cannot recover. Only reloading the page helps. -->
       <h4 class="error">
         <b-icon icon="exclamation-circle-fill" variant="danger"></b-icon>
         Error

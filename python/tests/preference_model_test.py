@@ -1,3 +1,5 @@
+# Copyright 2016-2020 Ivan Alles. See also the LICENSE file.
+
 import numpy as np
 from server import preference_model
 import matplotlib.pyplot as plt
