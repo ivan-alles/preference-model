@@ -1,0 +1,5 @@
+# Allow full access for all bots.
+User-agent: *
+Allow: /
+
+Sitemap: https://ivan-alles.github.io/preference-model/sitemap.xml
