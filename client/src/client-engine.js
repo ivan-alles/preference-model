@@ -253,7 +253,7 @@ export class Engine {
 
     // Use 16-bit
     tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true)
-    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', true)
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false)
 
     console.log('New tf.ENV.features', tf.ENV.features);
 
