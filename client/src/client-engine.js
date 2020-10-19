@@ -245,11 +245,18 @@ export class Engine {
 
   async init(onProgress) {
     // Do tf initialization here, before any usage of it.
-    console.log('32-bit capable', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
-    console.log('32-bit enabled', tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
+
+    console.log('Initial tf.ENV.features', tf.ENV.features);
     
     // Switch off the convolution algo conv2dWithIm2Row() with very high memory requirements.
     tf.ENV.set('WEBGL_CONV_IM2COL', false)
+
+    // Use 16-bit
+    tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true)
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', true)
+
+    console.log('New tf.ENV.features', tf.ENV.features);
+
 
     if (process.env.NODE_ENV === 'production' ) {
       console.log('Production mode');
