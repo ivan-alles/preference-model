@@ -245,6 +245,7 @@ export class Engine {
 
   async init(onProgress) {
     // Do tf initialization here, before any usage of it.
+    await tf.ready();
 
     console.log('Initial tf.ENV.features', tf.ENV.features);
     
@@ -254,6 +255,9 @@ export class Engine {
     // Use 16-bit
     tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true)
     tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false)
+
+    // Repeat just in case the settings above require some lengthy initialization.
+    await tf.ready();
 
     console.log('New tf.ENV.features', tf.ENV.features);
 
