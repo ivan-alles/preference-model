@@ -24,7 +24,7 @@
           You can vary the pictures less or more by changing the <b>Variance</b>.
           </p>
           <p>
-          Now you can like the best of the new pictures to create even more beautiful ones. Eventually, you can let the AI create a person of your dream!
+          Now you can like the best of the new pictures to create even more beautiful ones. Eventually, you can let the AI create the person of your dream!
           </p>
         </section>
         <section>
@@ -438,7 +438,7 @@ export default {
     },
 
     shareTitle() {
-      return 'Make a Person of Your Dreams';
+      return 'Make the Person of Your Dreams';
     },
   },
 
