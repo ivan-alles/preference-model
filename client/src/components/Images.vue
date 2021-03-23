@@ -2,9 +2,16 @@
 
 <template>
   <b-container>
-    <div>
-      <h1>Make a Person of Your Dreams</h1>
-    </div>
+    <template v-if="state === stateKind.WELCOME">
+      <h1>Make the Person of Your Dreams</h1>
+      <div class="main-text">
+        <p>This app generates artificial faces.</p>
+      </div>
+      <b-button @click="startDemo()" variant="primary">
+        <b-icon icon="camera-video" ></b-icon>
+        Start
+      </b-button>      
+    </template>
     <template v-if="state === stateKind.WORKING">
       <template v-if="fullPicture === null">
         <div class="flex-container content">
@@ -180,10 +187,11 @@ class Picture {
 }
 
 const stateKind = {
+    WELCOME: 'WELCOME', // Welcome screen.
     INIT: 'INIT',       // Loading models, etc.
-    WORKING: 'WORKING', // Generating pictures
+    WORKING: 'WORKING', // Working.
     EXIT: 'EXIT',       // App finished.
-    ERROR: 'ERROR',     // Fatal error, cannot work.
+    ERROR: 'ERROR',     // Fatal error, cannot work.    
 }
 
 class Logger {
@@ -215,7 +223,7 @@ class Logger {
 export default {
   data() {
     return {
-      state: stateKind.INIT,
+      state: stateKind.WELCOME,
       pictures: [],
       varianceSlider: 2,
       fullPicture: null,
@@ -336,6 +344,19 @@ export default {
       location.reload();
     },
 
+    startDemo() {
+      this.state = stateKind.INIT;
+      this.getPicturesTask();
+    },    
+
+    async stopDemo() {
+      // TODO(ia): call it!
+      while(this.state == stateKind.WORKING && this.isDetecting) {
+        await sleep(50);
+      }
+      this.state = stateKind.WELCOME;
+    },
+
     toggleLike(picture) {
       picture.liked = !picture.liked;
       this.isLearningTriggered = true;
@@ -386,7 +407,6 @@ export default {
   },
 
   mounted() {
-    this.getPicturesTask();
   },
 
   beforeDestroy () {
@@ -524,6 +544,10 @@ button {
   box-shadow: 0 -5px 5px -5px #0004;
   /* TODO(ia): add shadow at the top.*/
   background-color: #f7f7f9f0;
+}
+
+.main-text {
+  margin: 10px 0 0 0;
 }
 
 </style>
