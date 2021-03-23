@@ -8,7 +8,6 @@
         <p>This app generates artificial faces.</p>
       </div>
       <b-button @click="startDemo()" variant="primary">
-        <b-icon icon="camera-video" ></b-icon>
         Start
       </b-button>      
     </template>
@@ -45,7 +44,11 @@
               <p>Making random pictures.</p>
               <p>
                 <b-icon icon="heart-fill" class="like-in-text"></b-icon>
-                Like some pictures to dream similar ones.</p>
+                Like some pictures to dream similar ones.
+                <b-button @click="stopDemo()" variant="secondary" id="stopDemoButton">
+                  Quit
+                </b-button>                   
+              </p>
             </template>
             <template v-else>
               <div class="flex-container content">
@@ -58,6 +61,9 @@
                 <b-button @click="unlikeAll()" variant="secondary">
                   <b-icon icon="trash" ></b-icon>
                 </b-button>
+                <b-button @click="stopDemo()" variant="secondary" >
+                  Quit
+                </b-button>                  
               </div>
               <b-row>
                 <b-col sm="1">
@@ -549,5 +555,10 @@ button {
 .main-text {
   margin: 10px 0 0 0;
 }
+
+#stopDemoButton {
+  margin-left: 20px;  
+}
+
 
 </style>
