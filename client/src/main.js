@@ -3,14 +3,13 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
-import VueAnalytics from 'vue-analytics'
+import VueGtag from 'vue-gtag'
 
 
 Vue.config.productionTip = false
 
-Vue.use(VueAnalytics, {
-  id: 'UA-171289527-2',
-  router
+Vue.use(VueGtag, {
+  config: { id: 'G-M6ZS8H863N' }
 })
 
 new Vue({

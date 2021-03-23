@@ -186,14 +186,14 @@ const stateKind = {
     ERROR: 'ERROR',     // Fatal error, cannot work.
 }
 
-class GoogleAnalyticsLogger {
-  constructor(ga) {
-    this.ga = ga;
+class Logger {
+  constructor(gtag) {
+    this.gtag = gtag;
   }
 
   log(category, action, label, value=1) {
     console.log(category, action, label, value);
-    this.ga.event({
+    this.gtag.event({
       eventCategory: category,
       eventAction: action,
       eventLabel: label,
@@ -202,13 +202,13 @@ class GoogleAnalyticsLogger {
   }
 
   logException(action, exception, value=1) {
-    console.error(exception);
-    this.ga.event({
+    console.error(action, exception, value);
+    this.gtag.event({
       eventCategory: 'LogError',
       eventAction: action,
       eventLabel: exception.stack,
       eventValue: value
-    });
+    });    
   }
 }
 
@@ -379,7 +379,7 @@ export default {
 
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    this.logger = new GoogleAnalyticsLogger(this.$ga);
+    this.logger = new Logger(this.$gtag);
     this.isActive = true;
     this.isLearningTriggered = false;
     this.engine = new Engine(this.logger);
