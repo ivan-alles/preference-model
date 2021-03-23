@@ -151,7 +151,13 @@
       <b-button @click="reload()" variant="primary">
         <b-icon icon="bootstrap-reboot"></b-icon>
           Reload
-        </b-button>
+      </b-button>
+      <b-button @click="showFatalError = true" variant="secondary">
+        Details
+      </b-button>      
+      <template v-if="showFatalError">
+        <p class='fatal-error-text'>{{this.fatalError}}</p>
+      </template>        
     </template>
   </b-container>
 </template>
@@ -233,10 +239,13 @@ export default {
       pictures: [],
       varianceSlider: 2,
       fullPicture: null,
+      isGenerating: false, // DNN is working, ignore attempts to quit.
       isMobile: false,
       isScrollingRequiredForNewPictures: false,
       progressMessage: 'Loading ...',
       previewScrollTop: null,
+      fatalError: '', // Information about the error triggered ERROR state.
+      showFatalError: false,       
     };
   },
   computed: {
@@ -256,6 +265,8 @@ export default {
     */
     async getPicturesTask() {
       try {
+        this.isGenerating = false;
+
         await this.engine.init(message => {this.progressMessage = message;});
         this.progressMessage = 'Warming up ...';
         if('show' in this.$route.query) {
@@ -265,15 +276,19 @@ export default {
           const picture = new Picture(enginePictures[0].latents, enginePictures[0].preview, enginePictures[0].full);
           this.pictures.push(picture);
           this.fullPicture = picture;
-          this.state = stateKind.WORKING;
         }       
 
-        while(this.state != stateKind.EXIT) {
+        this.state = stateKind.WORKING;
+
+        for(;;) {
+          this.isGenerating = false;
           await sleep(50);
 
           if(!this.isActive) {
             continue;
           }
+          if (this.state != stateKind.WORKING) break;
+          this.isGenerating = true;
 
           // Use a local variable, as the member variable can be reset during async calls.
           const fullPicture = this.fullPicture;
@@ -330,10 +345,11 @@ export default {
         }
       }
       catch(error) {
-        this.state = stateKind.ERROR;
         this.logger.logException('Images.getPicturesTask.createPictures', error);
-        return;
+        this.fatalError = error.stack;
+        if (this.state != stateKind.WELCOME) this.state = stateKind.ERROR;
       }
+      this.isGenerating = false;
     },
 
     checkFatalError(enginePictures) {
@@ -357,7 +373,7 @@ export default {
 
     async stopDemo() {
       // TODO(ia): call it!
-      while(this.state == stateKind.WORKING && this.isDetecting) {
+      while(this.state == stateKind.WORKING && this.isGenerating) {
         await sleep(50);
       }
       this.state = stateKind.WELCOME;
