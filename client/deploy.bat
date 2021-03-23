@@ -5,9 +5,6 @@ call yarn build
 
 pushd dist
 
-:: This fixes the problem of Github Pages showing ERROR 404 for SPA routes.
-copy index.html about.html
-
 git init
 git add -A
 git commit -m 'deploy'
