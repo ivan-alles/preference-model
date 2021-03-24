@@ -398,8 +398,10 @@ export default {
     },
 
     startDemo() {
-      this.state = stateKind.INIT;
-      this.getPicturesTask();
+      if(this.state !== stateKind.INIT) {
+        this.state = stateKind.INIT;
+        this.getPicturesTask();
+      }
     },    
 
     async stopDemo() {
@@ -463,6 +465,10 @@ export default {
   },
 
   mounted() {
+    // We opened the app with latents of a big picture. Skip welcome screen, go to the big screen.
+    if('show' in this.$route.query) {
+      this.startDemo();
+    }
   },
 
   beforeDestroy () {
