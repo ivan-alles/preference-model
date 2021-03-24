@@ -4,6 +4,50 @@
   <b-container>
     <template v-if="state === stateKind.WELCOME">
       <h1>Make the Person of Your Dreams</h1>
+    </template>
+    <template v-if="state === stateKind.WELCOME || fullPicture !== null">
+      <ShareNetwork
+          network="Facebook"
+          :url="shareUrl()"
+          :title="shareTitle()"
+        >
+        <b-button variant="secondary">
+          <font-awesome-icon :icon="['fab', 'facebook']" size="lg" ></font-awesome-icon>
+        </b-button>
+      </ShareNetwork>
+      <!-- Twitter does not work with a local URL. -->
+      <ShareNetwork
+          network="Twitter"
+          :url="shareUrl()"
+          :title="shareTitle()"
+        >
+        <b-button variant="secondary">
+          <font-awesome-icon :icon="['fab', 'twitter']" size="lg" ></font-awesome-icon>
+        </b-button>
+      </ShareNetwork>         
+      <ShareNetwork
+          network="VK"
+          :url="shareUrl()"
+          :title="shareTitle()"
+        >
+        <b-button variant="secondary">
+          <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
+        </b-button>
+      </ShareNetwork>   
+      <!-- The URL will be inserted as plain text, so add a line break and a short description. -->
+      <ShareNetwork
+          network="Email"
+          :url="shareUrl()"
+          :title="shareTitle()"
+          description="
+          Please put the URL above to the address bar of your browser."
+        >
+        <b-button variant="secondary">
+          <b-icon icon="envelope" ></b-icon>
+        </b-button>
+      </ShareNetwork>          
+    </template>
+    <template v-if="state === stateKind.WELCOME">
       <div class="main-text">
         <header>
           <p>
@@ -109,46 +153,6 @@
           <b-icon icon="arrow-left-short" ></b-icon>
           Continue
         </b-button>
-        <ShareNetwork
-            network="Facebook"
-            :url="shareUrl()"
-            :title="shareTitle()"
-          >
-          <b-button variant="secondary">
-            <font-awesome-icon :icon="['fab', 'facebook']" size="lg" ></font-awesome-icon>
-          </b-button>
-        </ShareNetwork>
-        <!-- Twitter does not work with a local URL. -->
-        <ShareNetwork
-            network="Twitter"
-            :url="shareUrl()"
-            :title="shareTitle()"
-          >
-          <b-button variant="secondary">
-            <font-awesome-icon :icon="['fab', 'twitter']" size="lg" ></font-awesome-icon>
-          </b-button>
-        </ShareNetwork>         
-        <ShareNetwork
-            network="VK"
-            :url="shareUrl()"
-            :title="shareTitle()"
-          >
-          <b-button variant="secondary">
-            <font-awesome-icon :icon="['fab', 'vk']" size="lg" ></font-awesome-icon>
-          </b-button>
-        </ShareNetwork>   
-        <!-- The URL will be inserted as plain text, so add a line break and a short description. -->
-        <ShareNetwork
-            network="Email"
-            :url="shareUrl()"
-            :title="shareTitle()"
-            description="
-            Please put the long URL above to the address bar of your browser."
-          >
-          <b-button variant="secondary">
-            <b-icon icon="envelope" ></b-icon>
-          </b-button>
-        </ShareNetwork>          
         <template v-if="fullPicture.full !== null && fullPicture.full !== 'ERROR'">
           <img :src="fullPicture.full" class="full-picture">
         </template>
@@ -433,7 +437,10 @@ export default {
     },
 
     shareUrl() {
-      const url = window.location.href + '?show=' + this.engine.convertLatentsToURIString(this.fullPicture.latents);
+      let url = window.location.href;
+      if(this.state !== stateKind.WELCOME) {
+        url += '?show=' + this.engine.convertLatentsToURIString(this.fullPicture.latents);
+      }
       return url;
     },
 
