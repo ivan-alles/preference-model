@@ -547,7 +547,7 @@ function sleep(ms) {
   width: 40px;
   height: 80px;
   padding: 5px;
-  color: red;
+  color: #f52929;
 }
 
 .like-button 
@@ -562,15 +562,15 @@ function sleep(ms) {
 }
 
 .like-button:hover {
-  color: red;
+  color: #f52929;
 }
 
 .liked {
-  color: red;
+  color: #f52929;
 }
 
 .like-in-text {
-  color: red;
+  color: #f52929;
 }
 
 button {
