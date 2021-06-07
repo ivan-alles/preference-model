@@ -261,6 +261,9 @@ export class Engine {
 
     console.log('New tf.ENV.features', tf.ENV.features);
 
+    // Make a predictable behaviour of the RNGs. Useful for testing.
+    Math.seedrandom(2);
+      
 
     if (process.env.NODE_ENV === 'production' ) {
       console.log('Production mode');
