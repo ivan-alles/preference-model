@@ -4,9 +4,10 @@
   <b-container>
     <template v-if="state === stateKind.WELCOME">
       <h1>Make the Person of Your Dreams</h1>
+      <h4>A demonstration of human-AI collaboration in computational creativity</h4>
     </template>
     <template v-if="state === stateKind.WELCOME || fullPicture !== null">
-      <ShareNetwork
+      <ShareNetwork 
           network="Facebook"
           :url="shareUrl()"
           :title="shareTitle()"
@@ -45,9 +46,15 @@
         <b-button variant="secondary">
           <b-icon icon="envelope" ></b-icon>
         </b-button>
-      </ShareNetwork>          
+      </ShareNetwork>        
     </template>
     <template v-if="state === stateKind.WELCOME">
+      <div class="youtube-super-container">
+        <div class="youtube-container">
+          <iframe class="youtube-video" src="https://www.youtube.com/embed/M1_5VaDYxK4" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
       <div class="main-text">
         <section>
           <p>This app demonstrates how computational creativity can work together with you to create beautiful pictures.</p>
@@ -62,6 +69,9 @@
 
           <p>See more on <a href="https://github.com/ivan-alles/preference-model">Github</a>.</p>
         </section>
+        <b-button @click="startDemo()" variant="primary">
+          Start
+        </b-button>         
         <section>
           <h2>Credits</h2>
           <p>
@@ -70,9 +80,6 @@
           </p>
         </section>
       </div>
-      <b-button @click="startDemo()" variant="primary">
-        Start
-      </b-button>      
     </template>
     <template v-if="state === stateKind.WORKING">
       <template v-if="fullPicture === null">
@@ -601,12 +608,33 @@ button {
 }
 
 .main-text {
-  margin: 10px 0 0 0;
+  margin: 15px 0 0 0;
 }
 
 #stopDemoButton {
   margin-left: 20px;  
 }
 
+/* Limit youtube iframe width on large screen. */
+.youtube-super-container {
+    max-width: 560px;
+}
+
+/* Responsive youtube iframe, see https://www.h3xed.com/web-development/how-to-make-a-responsive-100-width-youtube-iframe-embed */
+.youtube-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+}
+
+.youtube-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 10px 0 0 0;
+}
 
 </style>
