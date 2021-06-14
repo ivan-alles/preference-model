@@ -51,7 +51,7 @@
     <template v-if="state === stateKind.WELCOME">
       <div class="youtube-super-container">
         <div class="youtube-container">
-          <iframe class="youtube-video" src="https://www.youtube.com/embed/M1_5VaDYxK4" frameborder="0" 
+          <iframe class="youtube-video" src="https://www.youtube.com/embed/7jcK6ndK4tY" frameborder="0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
       </div>

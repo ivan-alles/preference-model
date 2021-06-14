@@ -2,7 +2,7 @@
 
 # Learning What You Like From Your Likes
 
-
+[![Video Intro](/assets/youtube_thumbnail.jpg)](https://youtu.be/7jcK6ndK4tY "Video Intro")
 
 This app demonstrates how computational creativity can work together with you to create beautiful pictures.
 
