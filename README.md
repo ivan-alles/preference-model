@@ -14,6 +14,8 @@ You can vary the pictures less or more by changing the Variance.
 
 Now you can select the best of the new pictures to create even more beautiful ones. Eventually, you can let the AI make the person of your dreams!
 
+In mathematical terms, the AI finds the image maximizing the function of your personal preference using the cross-entropy method. The unusual thing about this is that this function is in your brain.
+
 ## Online Demo
 Check out the [browser demo app](https://ivan-alles.github.io/preference-model/). It works best on a PC with an NVIDIA graphic card. It may fail to run on some devices.
 
